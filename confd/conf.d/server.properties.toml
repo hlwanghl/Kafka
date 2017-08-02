@@ -1,0 +1,8 @@
+[template]
+  src = "server.properties.tmpl"
+  dest = "/opt/kafka/config/server.properties"
+  keys = [
+      "/",
+  ]
+  reload_cmd = "/opt/kafka/bin/kafka-server-restart.sh"
+
