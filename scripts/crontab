@@ -1,3 +1,0 @@
-# crontab check for  kafka-manager
-* * * * * root /opt/kafka-manager/bin/check_kafka-manager.sh >/dev/null 2>&1; sleep 10;/opt/kafka-manager/bin/check_kafka-manager.sh >/dev/null 2>&1
-0 0 * * * ? * root echo "">/opt/kafka-manager/logs/kafka-manager.log >dev/null 2&1

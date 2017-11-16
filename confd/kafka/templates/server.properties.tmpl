@@ -1,4 +1,4 @@
-      # fixed params
+ # fixed params
       log.segment.bytes=1073741824
       socket.send.buffer.bytes=202400
       num.network.threads=3
@@ -27,7 +27,7 @@
       host.name={{getv "/host/ip"}}
       broker.id={{getv "/host/sid"}}
       {{$ahost := getv "/env/advertised.host.name"}}{{ if le ( len ( $ahost ) ) 0 }}advertised.host.name={{getv "/host/ip"}}{{end}}
-      {% endraw %}
+     
 
 
       # monitor
@@ -40,4 +40,4 @@
       external.kafka.statsd.dimension.enabled.median=false
       external.kafka.statsd.dimension.enabled.p99=false
       kafka.metrics.reporters=com.airbnb.kafka.KafkaStatsdMetricsReporter
-      external.kafka.statsd.metrics.prefix=
+external.kafka.statsd.metrics.prefix=

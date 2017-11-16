@@ -2,7 +2,7 @@
     "type": "array",
     "properties": [{
         "key": "cluster",
-        "description": "Kafka release 0.10.2.1 cluster properties",
+        "description": "Kafka release 1.0.0 cluster properties",
         "type": "array",
         "properties": [{
             "key": "name",
@@ -31,11 +31,14 @@
             "description": "Choose a ZooKeeper to use",
             "type": "service",
             "tag": ["ZK", "ZooKeeper"],
+            "limits": {
+                "app-tg3lbp0a": []
+            },
             "default": "",
             "required": "yes"
         }, {
-            "key": "nodes",
-            "label": "Kafka",
+            "key": "kafka",
+            "label": "Kafka nodes",
             "description": "Kafka nodes",
             "type": "array",
             "properties": [{
@@ -76,11 +79,57 @@
                 "label": "Volume Size",
                 "description": "The volume size for each instance",
                 "type": "integer",
-                "default": 10,
+                "default": 30,
                 "required": "yes"
             }]
-        }]
     }, {
+        "key": "client",
+        "label": "client node",
+        "description": "client node",
+        "type": "array",
+        "properties": [{
+            "key": "cpu",
+            "label": "CPU",
+            "description": "CPUs of each node",
+            "type": "integer",
+            "default": 1,
+            "range": [1, 2, 4, 8, 12, 16],
+            "required": "yes"
+        }, {
+            "key": "memory",
+            "label": "Memory",
+            "description": "Memory of each node",
+            "type": "integer",
+            "default": 1024,
+            "range": [1024, 2048, 4096, 8192, 16384, 32768,49152,65536],
+            "required": "yes"
+        }, {
+            "key": "count",
+            "label": "Node Count",
+            "description": "Number of nodes for the cluster to create",
+            "type": "integer",
+            "default": 1,
+             "min":0,
+             "max":1,
+            "required": "yes"
+        }, {
+            "key": "instance_class",
+            "label": "Instance Class",
+            "description": "The instance type for the cluster to run, such as high performance, high performance plus",
+            "type": "integer",
+            "default": 0,
+            "range": [0, 1],
+            "required": "yes"
+        }, {
+            "key": "volume_size",
+            "label": "Volume Size",
+            "description": "The volume size for each instance",
+            "type": "integer",
+            "default": 10,
+            "required": "yes"
+        }]
+    }]
+},{
         "key": "env",
         "description": "Kafka service properties",
         "type": "array",
@@ -110,7 +159,7 @@
             "default": 1073741824,
             "max": 10737418240,
             "min": 1048576,
-            "required": "yes"
+            "required": "no"
         },{
             "key": "log_segment_delete_delay_ms",
             "label": "log.segment.delete.delay.ms",
@@ -118,7 +167,7 @@
             "type": "integer",
             "default": 60000,
             "min": 0,
-            "required": "yes"
+            "required": "no"
         }, {
             "key": "log_roll_hours",
             "label": "log.roll.hours",
@@ -127,7 +176,7 @@
             "default": 168,
             "max": 876,
             "min": 1,
-            "required": "yes"
+            "required": "no"
         }, {
             "key": "auto_create_topics_enable",
             "label": "auto.create.topics.enable",
@@ -148,23 +197,39 @@
         }, {
             "key": "delete_topic_enable",
             "label": "delete.topic.enable",
-            "description": "default replication factors for automatically created topics",
+            "description": "Enables delete topic. Delete topic through the admin tool will have no effect if this config is turned off",
             "type": "boolean",
             "default": true,
             "range": [true, false],
             "required": "yes"
         }, {
+            "key": "log_cleanup_policy",
+            "label": "log.cleanup.policy",
+            "description": "This string designates the retention policy to use on old log segments",
+            "type": "string",
+            "default": "delete",
+            "range": ["delete", "compact"],
+            "required": "no"
+        },{
             "key": "log_cleaner_enable",
             "label": "log.cleaner.enable",
-            "description": "use to cmpact messages",
+            "description":"use to compact messages",
             "type": "boolean",
             "default": false,
             "range": [true, false],
-            "required": "yes"
+            "required": "no"
+        },{
+            "key": "compression_type",
+            "label": "compression.type",
+            "description": "Specify the final compression type for a given topic",
+            "type": "string",
+            "default": "producer",
+            "range": ["producer", "gzip","snappy","lz4","uncompressed"],
+            "required": "no"
         },{
             "key": "message_max_bytes",
             "label": "message.max.bytes",
-            "description": "This is largest message size Kafka will allow to be appended to this topic.",
+            "description": "This is largest message size Kafka will allow to be appended to this topic",
             "type": "integer",
             "max": 1073741823,
             "min": 1024,
@@ -173,57 +238,57 @@
         }, {
             "key": "num_io_threads",
             "label": "num.io.threads",
-            "description": "The number of io threads that the server uses for carrying out network requests.",
+            "description": "The number of io threads that the server uses for carrying out network requests",
             "type": "integer",
             "default": 8,
             "max": 20,
             "min": 1,
-            "required": "yes"
+            "required": "no"
         }, {
             "key": "num_partitions",
             "label": "num.partitions",
-            "description": "The default number of log partitions per topic.",
+            "description": "The default number of log partitions per topic",
             "type": "integer",
-            "default": 1,
+            "default": 3,
             "max": 100,
             "min": 1,
             "required": "yes"
         }, {
             "key": "num_replica_fetchers",
             "label": "num.replica.fetchers",
-            "description": "Number of fetcher threads used to replicate messages from a source broker.",
+            "description": "Number of fetcher threads used to replicate messages from a source broker",
             "type": "integer",
             "default": 1,
             "max": 10,
             "min": 1,
-            "required": "yes"
+            "required": "no"
         }, {
             "key": "queued_max_requests",
             "label": "queued.max.requests",
-            "description": "The number of queued requests allowed before blocking the network threads.",
+            "description": "The number of queued requests allowed before blocking the network threads",
             "type": "integer",
             "default": 500,
             "max": 5000,
             "min": 1,
-            "required": "yes"
+            "required": "no"
         }, {
             "key": "socket_receive_buffer_bytes",
             "label": "socket.receive.buffer.bytes",
-            "description": "The SO_RCVBUF buffer of the socket sever sockets.",
+            "description": "The SO_RCVBUF buffer of the socket sever sockets",
             "type": "integer",
             "default": 102400,
             "max": 102400000,
             "min": 1024,
-            "required": "yes"
+            "required": "no"
         }, {
             "key": "socket_send_buffer_bytes",
             "label": "socket.send.buffer.bytes",
-            "description": "The SO_RCVBUF buffer of the socket sever sockets.",
+            "description": "The SO_RCVBUF buffer of the socket sever sockets",
             "type": "integer",
             "default": 102400,
             "max": 102400000,
             "min": 1024,
-            "required": "yes"
+            "required": "no"
         }, {
             "key": "advertised_host_name",
             "label": "advertised.host.name",
@@ -234,14 +299,14 @@
         }, {
             "key": "advertised_port",
             "label": "advertised.port",
-            "description": "This is the port that will be given out to other workers to connect to.",
+            "description": "This is the port that will be given out to other workers to connect to",
             "type": "integer",
             "default": 9092,
             "required": "yes"
         },{
             "key": "kafka-manager_basicAuthentication_enabled",
             "label": "kafka-manager.basicAuthentication.enabled",
-            "description": "Choose whether or not need to log in kafka-manager.",
+            "description": "Choose whether or not need to log in kafka-manager",
             "type": "boolean",
             "default": false,
             "range": [true, false],
@@ -249,14 +314,14 @@
         },{
             "key": "kafka-manager_basicAuthentication_username",
             "label": "kafka-manager.basicAuthentication.username",
-            "description": "This is the username that log in kafka-manager.",
+            "description": "This is the username that log in kafka-manager",
             "type": "string",
             "default": "admin",
             "required": "yes"
         },{
             "key": "kafka-manager_basicAuthentication_password",
             "label": "kafka-manager.basicAuthentication.password",
-            "description": "This is the password that log in kafka-manager.",
+            "description": "This is the password that log in kafka-manager",
             "type": "password",
             "changeable":true,
             "default": "password",
@@ -264,7 +329,7 @@
         },{
             "key": "kafka-manager_port",
             "label": "kafka-manager.port",
-            "description": "This is the  in kafka-manager http port",
+            "description": "This is the kafka-manager http port",
             "type": "integer",
             "changeable":true,
             "default": 9000,

@@ -4,5 +4,4 @@
   keys = [
       "/",
   ]
-  reload_cmd = "/opt/kafka/bin/kafka-server-restart.sh"
-
+reload_cmd = "/opt/kafka/bin/kafka-server-restart.sh"

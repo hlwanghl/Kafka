@@ -13,12 +13,8 @@ else                               #大于5G内存设置为5G
 
 fi
 ulimit -n 100000
-export JAVA_HOME=/opt/jdk
-export PATH=$JAVA_HOME/bin:$PATH
-export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
 export KAFKA_HEAP_OPTS="${KAFKA_HEAP_USE}"
 export JMX_PORT="9999"
 export KAFKA_JMX_OPTS="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false  -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=$ip"
 export KAFKA_LOG4J_OPTS="-Dlog4j.configuration=file:/opt/kafka/config/log4j.properties"
 /opt/kafka/bin/kafka-server-start.sh -daemon /opt/kafka/config/server.properties
-

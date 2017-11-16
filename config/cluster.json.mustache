@@ -5,37 +5,128 @@
     "links": {
         "zk_service": {{cluster.zk_service}}
     },
-    "nodes": [{
+    "nodes": [
+       {
+        "role":"kafka",
         "container": {
-            "type": "kvm",
+            "type": "lxc",
             "zone": "sh1a",
-            "image": "img-e8872u05"
+            "image": "img-5ebjvo0j"
         },
-        "instance_class": {{cluster.nodes.instance_class}},
-        "count": {{cluster.nodes.count}},
-        "cpu": {{cluster.nodes.cpu}},
-        "memory": {{cluster.nodes.memory}},
+        "instance_class": {{cluster.kafka.instance_class}},
+        "count": {{cluster.kafka.count}},
+        "cpu": {{cluster.kafka.cpu}},
+        "memory": {{cluster.kafka.memory}},
         "volume": {
-          "size": {{cluster.nodes.volume_size}},
+          "size": {{cluster.kafka.volume_size}},
           "mount_point": "/data",
-          "filesystem": "ext4"
+          "filesystem": "xfs"
         },
         "services": {
-          "init": {
-               "nodes_to_execute_on": 1,
-               "post_start_service": true,
-               "cmd": "/opt/kafka-manager/bin/kafka-manager_autoConfig.sh"
-           },
             "start": {
-                "cmd": "/opt/kafka/bin/kafka-start.sh;nohup /opt/kafka-manager/bin/kafka-manager -Dconfig.file=/opt/kafka-manager/conf/application.conf >/opt/kafka-manager/logs/kafka-manager.log 2>&1 &"
+                "cmd": "/opt/kafka/bin/kafka-start.sh"
             },
             "stop": {
-                "cmd": "/opt/kafka-manager/bin/kafka-manager-stop.sh;/opt/kafka/bin/kafka-server-stop.sh"
+                "cmd": "/opt/kafka/bin/kafka-server-stop.sh"
+            },
+            "restart": {
+                "cmd": "/opt/kafka/bin/kafka-server-restart.sh"
             }
         },
         "advanced_actions": ["change_vxnet", "scale_horizontal"],
-         "vertical_scaling_policy": "sequential"
-    }],
+         "vertical_scaling_policy": "sequential",
+         "health_check": {
+             "enable": true,
+             "interval_sec": 60,
+             "timeout_sec": 10,
+             "action_timeout_sec": 30,
+             "healthy_threshold": 2,
+             "unhealthy_threshold": 2,
+             "check_cmd": "/opt/kafka/bin/check.sh",
+             "action_cmd": "/opt/kafka/bin/action.sh"
+         },
+         "monitor": {
+             "enable": true,
+             "cmd": "/opt/kafka/bin/get-monitor.sh",
+             "items": {
+               "heap_usage": {
+                   "unit": "%"
+               },
+               "MessagesInPerSec_1MinuteRate": {
+                   "unit": "count/sec"
+               },
+               "BytesInPerSec_1MinuteRate": {
+                   "unit": "bps"
+               },
+               "BytesOutPerSec_1MinuteRate": {
+                   "unit": "bps"
+               },
+             "Replica_MaxLag": {
+                 "unit": "count"
+             },
+              "IsrExpandsPerSec_1MinuteRate": {
+                   "unit": "count/sec"
+               },
+               "KafkaController_ActiveControllerCount": {
+                   "unit": "count"
+               },
+               "KafkaController_OfflinePartitionsCount": {
+                   "unit": "count"
+               }
+             },
+             "groups": {
+                 "JVM Heap":  ["heap_usage"],
+                 "Message Throughput": ["MessagesInPerSec_1MinuteRate"],
+                 "Data Throughput": ["BytesInPerSec_1MinuteRate", "BytesOutPerSec_1MinuteRate"],
+                 "Replica MaxLag": ["Replica_MaxLag"],
+                 "Isr Expansion Rate": ["IsrExpandsPerSec_1MinuteRate"],
+                 "Management Statistics": ["KafkaController_ActiveControllerCount","KafkaController_OfflinePartitionsCount"]
+             },
+             "display": ["JVM Heap", "Message Throughput", "Data Throughput","Replica MaxLag","Isr Expansion Rate","Management Statistics"],
+             "alarm": ["heap_usage","Replica_MaxLag"]
+         }
+    },{
+     "role":"client",
+     "user_access": true,
+     "container": {
+         "type": "kvm",
+         "zone": "sh1a",
+         "image": "img-fj393yuz"
+     },
+     "instance_class": {{cluster.client.instance_class}},
+     "count": {{cluster.client.count}},
+     "cpu": {{cluster.client.cpu}},
+     "memory": {{cluster.client.memory}},
+     "volume": {
+       "size": {{cluster.client.volume_size}},
+       "mount_point": "/data",
+       "filesystem": "xfs"
+     },
+     "services": {
+       "init": {
+            "nodes_to_execute_on": 1,
+            "post_start_service": false,
+            "cmd": "/opt/kafka-manager/bin/kafka-manager_autoConfig.sh"
+        },
+         "start": {
+             "cmd": "/opt/kafka-manager/bin/kafka-manager-start.sh"
+         },
+         "stop": {
+             "cmd": "/opt/kafka-manager/bin/kafka-manager-stop.sh"
+         }
+     },
+     "advanced_actions": ["change_vxnet", "scale_horizontal"],
+     "health_check": {
+         "enable": true,
+         "interval_sec": 60,
+         "timeout_sec": 10,
+         "action_timeout_sec": 30,
+         "healthy_threshold": 2,
+         "unhealthy_threshold": 2,
+         "check_cmd": "/opt/kafka-manager/bin/check.sh",
+         "action_cmd": "/opt/kafka-manager/bin/action.sh"
+     }
+ }],
     "env": {
         "log.retention.bytes": {{env.log_retention_bytes}},
         "log.retention.hours": {{env.log_retention_hours}},
@@ -50,6 +141,8 @@
         "num.io.threads": {{env.num_io_threads}},
         "num.partitions": {{env.num_partitions}},
         "num.replica.fetchers": {{env.num_replica_fetchers}},
+        "log.cleanup.policy": {{env.log_cleanup_policy}},
+        "compression.type": {{env.compression_type}},
         "queued.max.requests": {{env.queued_max_requests}},
         "socket.receive.buffer.bytes": {{env.socket_receive_buffer_bytes}},
         "socket.send.buffer.bytes": {{env.socket_send_buffer_bytes}},
@@ -80,67 +173,5 @@
             "protocol": "udp"
         }
 
-    },
-    "health_check": {
-        "enable": true,
-        "interval_sec": 60,
-        "timeout_sec": 10,
-        "action_timeout_sec": 30,
-        "healthy_threshold": 2,
-        "unhealthy_threshold": 2,
-        "check_cmd": "nc -w 3 -z -u 127.0.0.1 8125 > /dev/null 2>&1",
-        "action_cmd": "/opt/kafka/bin/kafka-server-restart.sh"
-    },
-    "monitor": {
-        "enable": true,
-        "cmd": "opt/kafka/bin/get-monitor.sh",
-        "items": {
-          "heap_usage": {
-              "unit": "%"
-          },
-          "MessagesInPerSec_1MinuteRate": {
-              "unit": "count/sec"
-          },
-          "BytesInPerSec_1MinuteRate": {
-              "unit": "bps"
-          },
-          "BytesOutPerSec_1MinuteRate": {
-              "unit": "bps"
-          },
-        "Replica_MaxLag": {
-            "unit": "count"
-        },
-        "ReplicaManager_PartitionCount": {
-            "unit": "count"
-        },
-        "ReplicaManager_LeaderCount": {
-          "unit": "count"
-        },
-        "ReplicaManager_UnderReplicatedPartitions": {
-            "unit": "count"
-        },  "IsrExpandsPerSec_1MinuteRate": {
-              "unit": "count/sec"
-          },
-          "IsrShrinksPerSec_1MinuteRate": {
-              "unit": "count/sec"
-          },
-          "KafkaController_ActiveControllerCount": {
-              "unit": "count"
-          },
-          "KafkaController_OfflinePartitionsCount": {
-              "unit": "count"
-          }
-        },
-        "groups": {
-            "JVM Heap":  ["heap_usage"],
-            "Message Throughput": ["MessagesInPerSec_1MinuteRate"],
-            "Data Throughput": ["BytesInPerSec_1MinuteRate", "BytesOutPerSec_1MinuteRate"],
-            "Replica MaxLag": ["Replica_MaxLag"],
-            "Partition Dataistribution": ["ReplicaManager_PartitionCount", "ReplicaManager_LeaderCount","ReplicaManager_UnderReplicatedPartitions"],
-            "Isr Expansion Rate": ["IsrExpandsPerSec_1MinuteRate","IsrShrinksPerSec_1MinuteRate"],
-            "Management Statistics": ["KafkaController_ActiveControllerCount","KafkaController_OfflinePartitionsCount"]
-        },
-        "display": ["JVM Heap", "Message Throughput", "Data Throughput","Replica MaxLag","Partition Dataistribution","Isr Expansion Rate","Management Statistics"],
-        "alarm": ["heap_usage","Replica_MaxLag"]
     }
 }
