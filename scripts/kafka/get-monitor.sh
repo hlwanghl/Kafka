@@ -15,9 +15,12 @@ then
    BytesOutPerSec_1MinuteRate=`echo "$data" | grep BrokerTopicMetrics.BytesOutPerSec.1MinuteRate | awk -F':' '{print int($2)}'`
    #Replica.MaxLag
    Replica_MaxLag=`echo "$data" | grep Replica.MaxLag | awk -F':' '{print $2}'`
+   if [ "$Replica_MaxLag" =  "" ]
+      then Replica_MaxLag=0
+     fi
    #IsrExpandsPerSec.1MinuteRate IsrShrinksPerSec.1MinuteRate
-   IsrExpandsPerSec_1MinuteRate=`echo "$data" | grep IsrExpandsPerSec.1MinuteRate | awk -F':' '{print int($2)}'`
+  # IsrExpandsPerSec_1MinuteRate=`echo "$data" | grep IsrExpandsPerSec.1MinuteRate | awk -F':' '{print int($2)}'`
    #KafkaController.ActiveControllerCount KafkaController.OfflinePartitionsCount
    KafkaController_ActiveControllerCount=`echo "$data" | grep KafkaController.ActiveControllerCount | awk -F':' '{print $2}'`
    KafkaController_OfflinePartitionsCount=`echo "$data" | grep KafkaController.OfflinePartitionsCount | awk -F':' '{print $2}'`
-echo "{\"heap_usage\":$heap_usage,\"MessagesInPerSec_1MinuteRate\":$MessagesInPerSec_1MinuteRate,\"BytesInPerSec_1MinuteRate\":$BytesInPerSec_1MinuteRate,\"BytesOutPerSec_1MinuteRate\":$BytesOutPerSec_1MinuteRate,\"Replica_MaxLag\":$Replica_MaxLag,\"IsrExpandsPerSec_1MinuteRate\":$IsrExpandsPerSec_1MinuteRate,\"KafkaController_ActiveControllerCount\":$KafkaController_ActiveControllerCount,\"KafkaController_OfflinePartitionsCount\":$KafkaController_OfflinePartitionsCount}"
+echo "{\"heap_usage\":$heap_usage,\"MessagesInPerSec_1MinuteRate\":$MessagesInPerSec_1MinuteRate,\"BytesInPerSec_1MinuteRate\":$BytesInPerSec_1MinuteRate,\"BytesOutPerSec_1MinuteRate\":$BytesOutPerSec_1MinuteRate,\"Replica_MaxLag\":$Replica_MaxLag,\"KafkaController_ActiveControllerCount\":$KafkaController_ActiveControllerCount,\"KafkaController_OfflinePartitionsCount\":$KafkaController_OfflinePartitionsCount}"

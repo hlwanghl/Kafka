@@ -1,4 +1,5 @@
 #!/bin/bash
+
 KAFKA_HEAP_USE="-Xms1G -Xmx1G"
 MEM_M=$(curl http://metadata/self/host/memory -s)
 MEM_M_SIZE=`expr $MEM_M / 2`
@@ -12,9 +13,16 @@ else                               #大于5G内存设置为5G
         KAFKA_HEAP_USE="-Xms5G -Xmx5G"
 
 fi
-ulimit -n 100000
+ulimit -n 64000
 export KAFKA_HEAP_OPTS="${KAFKA_HEAP_USE}"
 export JMX_PORT="9999"
+export  LOG_DIR="/data/kafka/logs"
 export KAFKA_JMX_OPTS="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false  -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=$ip"
-export KAFKA_LOG4J_OPTS="-Dlog4j.configuration=file:/opt/kafka/config/log4j.properties"
 /opt/kafka/bin/kafka-server-start.sh -daemon /opt/kafka/config/server.properties
+#for i in $(seq 0 30); do
+#       if  ps -ef | grep kafka |grep java |grep -v grep; then
+#          break
+#      fi
+#      /opt/kafka/bin/kafka-server-start.sh -daemon /opt/kafka/config/server.properties
+#      sleep 2
+#   done

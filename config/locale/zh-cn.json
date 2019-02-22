@@ -12,7 +12,7 @@
     "CPUs of each node": "每个节点的 CPU 数量",
     "Memory": "内存",
     "Memory of each node": "每个节点的内存大小",
-	  "Instance Class": "主机类型",
+	  "Node Class": "节点类型",
 	  "Kafka Node": "Kafka 节点",
 	  "Node Count": "节点数量",
     "count": "个",
@@ -55,7 +55,7 @@
     "Number of fetcher threads used to replicate messages from a source broker":"复制消息线程数",
     "The number of queued requests allowed before blocking the network threads":"等待IO线程处理的请求队列最大数",
     "The SO_RCVBUF buffer of the socket sever sockets":"socket 的接受缓冲区大小",
-    "The SO_RCVBUF buffer of the socket sever sockets":"socket 的发送缓冲区大小",
+    "The SO_SNDBUF buffer of the socket sever sockets":"socket 的发送缓冲区大小",
     "This is the hostname that will be given out to other workers to connect to":"用于 worker 连接的域名",
     "This is the port that will be given out to other workers to connect to":"用于 worker 连接的端口",
     "Choose whether or not need to log in kafka-manager":"kafka-manager 是否开启登陆验证",
@@ -67,5 +67,7 @@
     "use to compact messages":"用于是否开启日志压缩",
     "Specify the final compression type for a given topic":"用于主题的压缩策略",
      "Kafka nodes":"Kafka 节点",
-     "client node":"客户端节点"
+     "client node":"客户端节点",
+     "Indicates whether to enable replicas not in the ISR set to be elected as leader as a last resort, even though doing so may result in data loss":"是否启用不在ISR集合中的副本作为最后的选择，尽管这样做可能导致数据丢失",
+     "The replication factor for the offsets topic (set higher to ensure availability). Internal topic creation will fail until the cluster size meets this replication factor requirement":"内部 offset topic 的复制因子(设定更高的确保可用性)。 如果复制因子大于集群节点数，内部创建主题自动创建将会失败,直到集群大小符合这个复制因子的要求"
   }

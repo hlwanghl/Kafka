@@ -5,13 +5,14 @@
     "links": {
         "zk_service": {{cluster.zk_service}}
     },
+    "upgrade_policy": ["appv-t2pkfxjs","appv-vx6yl2x5"],
     "nodes": [
        {
         "role":"kafka",
         "container": {
             "type": "lxc",
             "zone": "sh1a",
-            "image": "img-5ebjvo0j"
+            "image": "img-07xjjxgc"
         },
         "instance_class": {{cluster.kafka.instance_class}},
         "count": {{cluster.kafka.count}},
@@ -33,7 +34,7 @@
                 "cmd": "/opt/kafka/bin/kafka-server-restart.sh"
             }
         },
-        "advanced_actions": ["change_vxnet", "scale_horizontal"],
+        "advanced_actions": ["change_vxnet", "scale_horizontal", "associate_eip"],
          "vertical_scaling_policy": "sequential",
          "health_check": {
              "enable": true,
@@ -91,7 +92,7 @@
      "container": {
          "type": "kvm",
          "zone": "sh1a",
-         "image": "img-fj393yuz"
+         "image": "img-u6mu3qxm"
      },
      "instance_class": {{cluster.client.instance_class}},
      "count": {{cluster.client.count}},
@@ -103,11 +104,6 @@
        "filesystem": "xfs"
      },
      "services": {
-       "init": {
-            "nodes_to_execute_on": 1,
-            "post_start_service": false,
-            "cmd": "/opt/kafka-manager/bin/kafka-manager_autoConfig.sh"
-        },
          "start": {
              "cmd": "/opt/kafka-manager/bin/kafka-manager-start.sh"
          },
@@ -115,7 +111,7 @@
              "cmd": "/opt/kafka-manager/bin/kafka-manager-stop.sh"
          }
      },
-     "advanced_actions": ["change_vxnet", "scale_horizontal"],
+     "advanced_actions": ["change_vxnet", "scale_horizontal", "associate_eip"],
      "health_check": {
          "enable": true,
          "interval_sec": 60,
@@ -146,8 +142,10 @@
         "queued.max.requests": {{env.queued_max_requests}},
         "socket.receive.buffer.bytes": {{env.socket_receive_buffer_bytes}},
         "socket.send.buffer.bytes": {{env.socket_send_buffer_bytes}},
+        "unclean.leader.election.enable": {{env.unclean_leader_election_enable}},
         "advertised.host.name": {{env.advertised_host_name}},
         "advertised.port": {{env.advertised_port}},
+        "offsets.topic.replication.factor": {{env.offsets_topic_replication_factor}},
         "kafka-manager.basicAuthentication.enabled": {{env.kafka-manager_basicAuthentication_enabled}},
         "kafka-manager.basicAuthentication.username": {{env.kafka-manager_basicAuthentication_username}},
         "kafka-manager.basicAuthentication.password": {{env.kafka-manager_basicAuthentication_password}},
