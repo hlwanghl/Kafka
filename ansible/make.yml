@@ -1,0 +1,175 @@
+---
+- hosts: server
+  vars:
+    kafkaManagerVersion: 2.0.0.2 #latest
+    kafkaVersion: 1.1.1
+    scalaVersion: "2.11"
+    caddyVersion: "1.0.0"
+
+  tasks:
+    - name: common setup
+      include_tasks: setup-confd.yml
+
+    - name: copy systemd files
+      copy: #拷贝service文件
+        src: files/{{ item }}
+        dest: /{{ item }}
+        directory_mode: yes
+      with_items:
+        - etc/systemd/system/
+
+    - name: add the service group
+      group:
+        name: kafka
+        state: present
+
+    - name: add the service user
+      user:
+        name: kafka
+        groups: kafka
+        shell: /sbin/nologin
+        create_home: no
+        home: "/opt/kafka/current"
+        append: yes
+        comment: "Service User"
+        state: present
+
+    - name: copy binaries
+      copy: #拷贝service文件
+        src: files/opt/
+        dest: /opt
+        owner: root
+        group: kafka
+        mode: preserve
+        directory_mode: u=rwx,g=rx,o=
+
+    - name: create symbolic link for ctl.sh
+      vars:
+        src_file: /opt/app/bin/ctl.sh
+      file:
+        src: "{{ src_file }}"
+        dest: /usr/bin/appctl
+        state: link
+
+    - name: install tools
+      apt:
+        update_cache: yes
+        name: ['openjdk-8-jdk', 'unzip']
+        state: present
+    
+    - name: prepare service directories
+      file:
+        path: /opt/{{ item }}
+        owner: kafka
+        group: kafka
+        state: directory
+      with_items:
+        - kafka/{{ kafkaVersion }}
+        - kafka-manager/{{ kafkaManagerVersion }}
+        - caddy/{{ caddyVersion }}
+
+    - name: create symbolic links
+      file:
+        src: /opt/{{ item.name }}/{{ item.version }}
+        dest: /opt/{{ item.name }}/current
+        owner: kafka
+        group: kafka
+        state: link
+      with_items:
+        - name: kafka
+          version: "{{ kafkaVersion }}"
+        - name: kafka-manager
+          version: "{{ kafkaManagerVersion }}"
+        - name: caddy
+          version: "{{ caddyVersion }}"
+
+    - name: download Kafka
+      get_url:
+        url: https://archive.apache.org/dist/kafka/{{ kafkaVersion }}/kafka_{{ scalaVersion }}-{{ kafkaVersion }}.tgz
+        dest: files/tmp/kafka-{{ kafkaVersion }}.tgz
+      delegate_to: localhost
+
+    - name: install kafka
+      unarchive:
+        src: files/tmp/kafka-{{ kafkaVersion }}.tgz
+        dest: /opt/kafka/{{ kafkaVersion }}
+        owner: kafka
+        group: kafka
+        creates: /opt/kafka/{{ kafkaVersion }}/bin/kafka-server-start.sh
+        extra_opts: [ '--strip-components=1' ]
+
+    - name: install statsd metrics
+      copy:
+        src: ../deps/kafka-statsd-metrics2-master-0.4.0.jar
+        dest: /opt/kafka/current/libs
+        owner: kafka
+        group: kafka
+
+    - name: prepare kafka manager directory
+      file:
+        path: files/tmp/kafka-manager-{{ kafkaManagerVersion }}
+        state: directory
+      delegate_to: localhost
+
+    - name: download kafka manager src
+      unarchive:
+        src: https://github.com/yahoo/kafka-manager/archive/{{ kafkaManagerVersion }}.zip
+        dest: files/tmp
+        creates: files/tmp/kafka-manager-{{ kafkaManagerVersion }}/sbt
+        remote_src: yes
+      delegate_to: localhost
+
+    - name: build kafka manager
+      shell: ./sbt clean dist
+      args:
+        chdir: files/tmp/kafka-manager-{{ kafkaManagerVersion }}
+        creates: files/tmp/kafka-manager-{{ kafkaManagerVersion }}/target/universal/kafka-manager-{{ kafkaManagerVersion }}.zip
+        executable: /bin/bash
+      delegate_to: localhost
+
+    - name: install kafka manager binaries
+      unarchive:
+        src: files/tmp/kafka-manager-{{ kafkaManagerVersion }}/target/universal/kafka-manager-{{ kafkaManagerVersion }}.zip
+        dest: /opt/kafka-manager
+        owner: kafka
+        group: kafka
+        creates: /opt/kafka-manager/{{ kafkaManagerVersion }}/bin/kafka-manager
+
+    - name: align kafka manager layout
+      shell: |
+        cp -r /opt/kafka-manager/kafka-manager-{{ kafkaManagerVersion }}/* /opt/kafka-manager/{{ kafkaManagerVersion }}/
+        rm -rf /opt/kafka-manager/kafka-manager-{{ kafkaManagerVersion }}
+      args:
+        creates: /opt/kafka-manager/{{ kafkaManagerVersion }}/bin/kafka-manager
+
+    - name: download caddy server
+      get_url:
+        url: https://github.com/mholt/caddy/releases/download/v{{ caddyVersion }}/caddy_v{{ caddyVersion }}_linux_amd64.tar.gz
+        dest: files/tmp/caddy-{{ caddyVersion }}.tgz
+      delegate_to: localhost
+
+    - name: install caddy
+      unarchive:
+        src: files/tmp/caddy-{{ caddyVersion }}.tgz
+        dest: /opt/caddy/{{ caddyVersion }}
+        owner: kafka
+        group: kafka
+        creates: /opt/caddy/{{ caddyVersion }}/caddy
+
+    - name: update permissions of service directories
+      file:
+        path: /opt/{{ item }}
+        owner: kafka
+        group: kafka
+        recurse: yes
+        state: directory
+      with_items:
+        - kafka
+        - kafka-manager
+
+    - name: clean up
+      shell: |
+        >/var/log/syslog
+        >~/.bash_history && history -c
+      args:
+        executable: /bin/bash

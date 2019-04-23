@@ -1,7 +1,0 @@
-[template]
-  src = "kafka-manager.consumer.properties.tmpl"
-  dest = "/opt/kafka-manager/conf/consumer.properties"
-  keys = [
-      "/",
-  ]
-reload_cmd = "/opt/kafka-manager/bin/kafka-manager-restart.sh"

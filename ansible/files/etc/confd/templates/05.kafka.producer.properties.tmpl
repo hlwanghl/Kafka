@@ -1,0 +1,14 @@
+{{- if eq $myRole "kafka" }}
+
+kafkaBrokers="{{ range $i, $ip := getvs "/hosts/kafka/%s/ip" }}
+{{- if $i }},{{ end }}
+{{- . }}:9092
+{{- end }}"
+
+cat > /opt/kafka/current/config/producer.properties << KAFKA_PRODUCER_PROPERTIES_EOF
+bootstrap.servers=$kafkaBrokers
+metadata.broker.list=$kafkaBrokers
+compression.type=none
+KAFKA_PRODUCER_PROPERTIES_EOF
+
+{{- end }}

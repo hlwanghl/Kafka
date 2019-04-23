@@ -1,0 +1,11 @@
+{{- if eq $myRole "kafka" }}
+
+cat > /opt/kafka/current/config/consumer.properties << KAFKA_CONSUMER_PROPERTIES_EOF
+bootstrap.servers={{ range $i,$ip := getvs "/hosts/kafka/*/ip" }}
+{{- if $i }},{{ end }}
+{{- . }}:9092
+{{- end }}
+group.id={{getv "/cluster/cluster_id"}}
+KAFKA_CONSUMER_PROPERTIES_EOF
+
+{{- end }}
