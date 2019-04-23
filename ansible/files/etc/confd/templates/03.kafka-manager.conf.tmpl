@@ -1,3 +1,4 @@
+cat > /opt/kafka-manager/current/conf/application.conf << APP_CONF_EOF
 play.crypto.secret="^<csmm5Fx4d=r2HEX8pelM3iBkFVv?k[mc;IZE<_Qoq8EkX_/7@Zt6dP05Pzea3U"
 play.crypto.secret=${?APPLICATION_SECRET}
 
@@ -29,5 +30,5 @@ basicAuthentication.enabled={{getv "/env/kafka-manager.basicAuthentication.enabl
 basicAuthentication.username="{{getv "/env/kafka-manager.basicAuthentication.username"}}"
 basicAuthentication.password="{{getv "/env/kafka-manager.basicAuthentication.password"}}"
 basicAuthentication.realm="Kafka-Manager"
-
-kafka-manager.consumer.properties.file=/opt/kafka-manager/conf/consumer.propertieiis
+group.id={{getv "/host/node_id"}}
+APP_CONF_EOF

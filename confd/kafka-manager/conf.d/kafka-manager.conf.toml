@@ -1,7 +1,0 @@
-[template]
-  src = "kafka-manager.conf.tmpl"
-  dest = "/opt/kafka-manager/conf/application.conf"
-  keys = [
-      "/",
-  ]
-reload_cmd = "/opt/kafka-manager/bin/kafka-manager-restart.sh"

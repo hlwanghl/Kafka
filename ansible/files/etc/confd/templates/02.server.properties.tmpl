@@ -1,0 +1,43 @@
+ cat > /opt/kafka/current/config/server.properties << SERVER_PROPERTIES_EOF
+ # fixed params
+log.dirs=/data/kafka/kafka-logs
+log.flush.interval.messages=10000
+log.flush.interval.ms=1000
+log.retention.check.interval.ms=300000
+log.segment.bytes=1073741824
+num.network.threads=3
+num.recovery.threads.per.data.dir=1
+port=9092
+replica.fetch.max.bytes=1000000
+socket.send.buffer.bytes=202400
+zookeeper.connection.timeout.ms=6000
+zookeeper.session.timeout.ms=6000
+
+# params input by user
+{{- range gets "/env/*" | filter ".+" }}
+{{ base .Key }}={{ .Value }}
+{{- end }}
+
+# dependency
+zookeeper.connect={{ range $i, $ip := getvs "/links/zk_service/hosts/*/ip" }}
+  {{- if $i }},{{ end }}{{ $ip }}:{{ getv "/links/zk_service/cluster/endpoints/client/port" "2181" }}
+{{- end -}}
+/kafka/{{ getv "/cluster/cluster_id" }}
+
+# self
+host.name={{getv "/host/ip"}}
+broker.id={{getv "/host/sid"}}
+{{$ahost := getv "/env/advertised.host.name"}}{{ if le ( len ( $ahost ) ) 0 }}advertised.host.name={{getv "/host/ip"}}{{end}}
+
+# monitor
+external.kafka.statsd.metrics.exclude_regex=(.*kafka\.cluster\..*)|(.*kafka\.log\.Log\.partition\..*)|(.*jvm.gc\..*)|(.*jvm\.fd_usage.*)|(.*jvm.daemon_threads\..*)|(.*jvm\.memory\.pool\..*)|(.*request\.ConsumerMetadata\..*)|(.*request\.ControlledShutdown\..*)|(.*request\.Heartbeat\..*)|(.*request\.JoinGroup\..*)|(.*request\.LeaderAndIsr\..*)|(.*request\.Metadata\..*)|(.*request\.OffsetFetch\..*)|(.*request\.Offsets\..*)|(.*request\.StopReplica\..*)|(.*request\.UpdateMetadata\..*)|(.*request\.OffsetCommit\..*)|(.*consumer\.FetchRequestAndResponseMetrics\..*)|(.*network\.RequestChannel\..*)|(.*OffsetManager\..*)|(.*FetcherStats\..*)|(.*BrokerTopicMetrics\.topic\..*)|(.*FetcherLagMetrics\.clientId\..*)|(.*DelayedFetchRequestMetrics\..*)|(.*networkProcessor\..*)|(.*FailedFetchRequestsPerSec.*)|(.*FailedProduceRequestsPerSec.*)|(.*KafkaController\.PreferredReplicaImbalanceCount.*)|(.*BytesRejectedPerSec.*)|(.*DelayedProducerRequestMetrics\..*)|(.*MinFetchRate.*)|(.*ExpiresPerSecond\..*)|(.*NumDelayedRequests.*)|(.*ControllerStats.*)|(.*FetchRequestPurgatory.*)|(.*KafkaRequestHandlerPool.*)|(.*ProducerRequestPurgatory.*)|(.*RequestQueueTimeMs.*)|(.*LocalTimeMs.*)|(.*RemoteTimeMs.*)|(.*ResponseSendTimeMs.*)|(.*NetworkProcessorAvgIdlePercent.*)|(.*kafka\.log\..*)|(.*kafka\.utils\..*)|(.*RequestMetrics\..*)|(.*kafka\.coordinator\..*)|(.*TotalFetchRequestsPerSec.*)|(.*TotalProduceRequestsPerSec.*)|(.*DelayedOperationPurgatory\..*)|(.*yammer-metrics-count)|(.*SessionExpireListener\..*)|(.*DelayedFetchMetrics\.*)
+external.kafka.statsd.dimension.enabled.meanRate=false
+external.kafka.statsd.reporter.enabled=true
+external.kafka.statsd.dimension.enabled.rate15m=fasle
+queued.max.requests=500
+external.kafka.statsd.port=8125
+external.kafka.statsd.dimension.enabled.median=false
+external.kafka.statsd.dimension.enabled.p99=false
+kafka.metrics.reporters=com.airbnb.kafka.KafkaStatsdMetricsReporter
+external.kafka.statsd.metrics.prefix=
+SERVER_PROPERTIES_EOF
