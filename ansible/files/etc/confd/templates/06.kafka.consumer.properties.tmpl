@@ -1,0 +1,11 @@
+cat > /opt/kafka/config/consumer.properties << KAFKA_CONSUMER_PROPERTIES_EOF
+# consumer group id
+group.id=test-consumer-group
+
+# dependency
+{{if exists "/links/zk_service/cluster/endpoints/client/port"}}{{$port := getv "/links/zk_service/cluster/endpoints/client/port"}} zookeeper.connect={{range $i, $host := ls (printf "/links/zk_service/hosts")}}{{$ip := printf "/links/zk_service/hosts/%s/ip" $host}}{{if $i}},{{end}}{{getv $ip}}:{{$port}}{{end}}{{else}}zookeeper.connect={{range $i, $host := ls (printf "/links/zk_service/hosts")}}{{$ip := printf "/links/zk_service/hosts/%s/ip" $host}}{{if $i}},{{end}}{{getv $ip}}:2181{{end}}{{end}}
+
+zookeeper.connection.timeout.ms=60000
+
+
+KAFKA_CONSUMER_PROPERTIES_EOF

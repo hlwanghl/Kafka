@@ -1,0 +1,35 @@
+cat > /opt/kafka/config/producer.properties << KAFKA_PRODUCER_PROPERTIES_EOF
+############################# Producer Basics #############################
+
+# list of brokers used for bootstrapping knowledge about the rest of the cluster
+# format: host1:port1,host2:port2 ...
+compression.type=none
+bootstrap.servers={{range $i,$dir:= ls (printf "/hosts/kafka")}}{{$ip := printf "/hosts/kafka/%s/ip" $dir}}{{if $i}},{{end}}{{getv $ip}}:9092{{end}}
+metadata.beoker.list={{range $i,$dir:= ls (printf "/hosts/kafka")}}{{$ip := printf "/hosts/kafka/%s/ip" $dir}}{{if $i}},{{end}}{{getv $ip}}:9092{{end}}
+# the maximum amount of time the client will wait for the response of a request
+#request.timeout.ms=
+
+compression.type=none
+producer.type=async
+
+# how long `KafkaProducer.send` and `KafkaProducer.partitionsFor` will block for
+#max.block.ms=
+
+# the producer will wait for up to the given delay to allow other records to be sent so that the sends can be batched together
+#linger.ms=
+
+# the maximum size of a request in bytes
+#max.request.size=
+
+# the default batch size in bytes when batching multiple records sent to a partition
+#batch.size=
+
+# the total bytes of memory the producer can use to buffer records waiting to be sent to the server
+#buffer.memory=
+~                             
+
+
+
+
+
+KAFKA_PRODUCER_PROPERTIES_EOF
