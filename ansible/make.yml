@@ -1,17 +1,19 @@
 ---
-- hosts: appcenter
+- hosts: server
+  remote_user: root
+  become: yes
   vars:
-    kafkaManagerVersion: 2.0.0.2
+    kafkaManagerVersion: 2.0.0.2 #latest
     kafkaMetricsVersion: 0.5.3
-    kafkaVersion: 1.0.0
-    scalaVersion: "2.11"
+    kafkaVersion: 2.2.0
+    scalaVersion: "2.12"
 
   tasks:
     - name: set up confd
       include_tasks: setup-confd.yml
 
     - name: copy binaries
-      copy:
+      copy: #拷贝service文件
         src: files/{{ item }}
         dest: /{{ item }}
         directory_mode: yes
@@ -38,7 +40,7 @@
     - name: install tools
       apt:
         update_cache: yes
-        name: ['openjdk-8-jre', 'unzip']
+        name: ['openjdk-8-jre', 'unzip', 'default-jdk']
         state: present
     
     - name: prepare service directories
@@ -88,36 +90,15 @@
         state: directory
       delegate_to: localhost
 
-    - name: download kafka manager src
+    - name: download kafka manager src without build
       unarchive:
-        src: https://github.com/yahoo/kafka-manager/archive/{{ kafkaManagerVersion }}.zip
-        dest: files/tmp
-        creates: files/tmp/kafka-manager-{{ kafkaManagerVersion }}/sbt
-        remote_src: yes
-      delegate_to: localhost
-
-    - name: build kafka manager
-      shell: ./sbt clean dist
-      args:
-        chdir: files/tmp/kafka-manager-{{ kafkaManagerVersion }}
-        creates: files/tmp/kafka-manager-{{ kafkaManagerVersion }}/target/universal/kafka-manager-{{ kafkaManagerVersion }}.zip
-        executable: /bin/bash
-      delegate_to: localhost
-
-    - name: install kafka manager binaries
-      unarchive:
-        src: files/tmp/kafka-manager-{{ kafkaManagerVersion }}/target/universal/kafka-manager-{{ kafkaManagerVersion }}.zip
+        src: https://github.com/yahoo/kafka-manager/archive/{{ kafkaManagerVersion }}.tar.gz
         dest: /opt/kafka-manager
         owner: kafka
         group: kafka
-        creates: /opt/kafka-manager/{{ kafkaManagerVersion }}/bin/kafka-manager
-
-    - name: align kafka manager layout
-      shell: |
-        cp -r /opt/kafka-manager/kafka-manager-{{ kafkaManagerVersion }}/* /opt/kafka-manager/{{ kafkaManagerVersion }}/
-        rm -rf /opt/kafka-manager/kafka-manager-{{ kafkaManagerVersion }}
-      args:
-        creates: /opt/kafka-manager/{{ kafkaManagerVersion }}/bin/kafka-manager
+        extra_opts: [ '--strip-components=1' ]
+        remote_src: yes
+        #creates: /opt/kafka-manager/{{ kafkaManagerVersion }}
 
     - name: clean up
       shell: |
