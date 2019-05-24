@@ -2,7 +2,7 @@
     "type": "array",
     "properties": [{
         "key": "cluster",
-        "description": "Kafka release 1.0.0 cluster properties",
+        "description": "Kafka release 2.2.0 cluster properties",
         "type": "array",
         "properties": [{
             "key": "name",
@@ -226,7 +226,7 @@
             "label": "log.cleaner.enable",
             "description":"use to compact messages",
             "type": "boolean",
-            "default": false,
+            "default": true,
             "range": [true, false],
             "required": "no"
         },{

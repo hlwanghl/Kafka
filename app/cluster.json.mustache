@@ -5,14 +5,14 @@
     "links": {
         "zk_service": {{cluster.zk_service}}
     },
-    "upgrade_policy": ["appv-3w7cnjir"],
+    "multi_zone_policy": "round_robin",
     "nodes": [
        {
         "role":"kafka",
         "container": {
-            "type": "kvm",
+            "type": "lxc",
             "zone": "ap2a",
-            "image": "img-i60006r6"
+            "image": "img-b1xnoanw"
         },
         "instance_class": {{cluster.kafka.instance_class}},
         "count": {{cluster.kafka.count}},
@@ -45,14 +45,54 @@
              "unhealthy_threshold": 2,
              "check_cmd": "/opt/kafka/bin/check.sh",
              "action_cmd": "/opt/kafka/bin/action.sh"
-        }
+        },
+         "monitor": {
+             "enable": true,
+             "cmd": "/opt/kafka/bin/get-monitor.sh",
+             "items": {
+               "heap_usage": {
+                   "unit": "%"
+               },
+               "MessagesInPerSec_1MinuteRate": {
+                   "unit": "count/sec"
+               },
+               "BytesInPerSec_1MinuteRate": {
+                   "unit": "bps"
+               },
+               "BytesOutPerSec_1MinuteRate": {
+                   "unit": "bps"
+               },
+               "Replica_MaxLag": {
+                 "unit": "count"
+               },
+               "IsrExpandsPerSec_1MinuteRate": {
+                   "unit": "count/sec"
+               },
+               "KafkaController_ActiveControllerCount": {
+                   "unit": "count"
+               },
+               "KafkaController_OfflinePartitionsCount": {
+                   "unit": "count"
+               }
+             },
+             "groups": {
+                 "JVM Heap":  ["heap_usage"],
+                 "Message Throughput": ["MessagesInPerSec_1MinuteRate"],
+                 "Data Throughput": ["BytesInPerSec_1MinuteRate", "BytesOutPerSec_1MinuteRate"],
+                 "Replica MaxLag": ["Replica_MaxLag"],
+                 "Isr Expansion Rate": ["IsrExpandsPerSec_1MinuteRate"],
+                 "Management Statistics": ["KafkaController_ActiveControllerCount","KafkaController_OfflinePartitionsCount"]
+             },
+             "display": ["JVM Heap", "Message Throughput", "Data Throughput","Replica MaxLag","Isr Expansion Rate","Management Statistics"],
+             "alarm": ["heap_usage","Replica_MaxLag"]
+         }
     },{
      "role":"client",
      "user_access": true,
      "container": {
          "type": "kvm",
          "zone": "ap2a",
-         "image": "img-i60006r6"
+         "image": "img-b1xnoanw"
      },
      "instance_class": {{cluster.client.instance_class}},
      "count": {{cluster.client.count}},
@@ -119,11 +159,14 @@
         "kafka-manager": {
             "port": "env.kafka-manager.port",
             "protocol": "http"
-        }
-        ,
+        },
         "jmx": {
             "port": 9999,
             "protocol": "tcp"
+        },
+        "monitor": {
+            "port": 8125,
+            "protocol": "udp"
         }
 
     }
