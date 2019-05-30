@@ -1,0 +1,38 @@
+{{- if eq $myRole "kafka-manager" }}
+
+cat > /opt/app/conf/kafka-manager/application.conf << APP_CONF_EOF
+play.crypto.secret="^<csmm5Fx4d=r2HEX8pelM3iBkFVv?k[mc;IZE<_Qoq8EkX_/7@Zt6dP05Pzea3U"
+play.crypto.secret=${?APPLICATION_SECRET}
+
+# The application languages
+# ~~~~~
+play.i18n.langs=["en"]
+
+play.http.requestHandler = "play.http.DefaultHttpRequestHandler"
+play.http.context = "/"
+play.application.loader=loader.KafkaManagerLoader
+
+# dependency
+kafka-manager.consumer.properties.file=/opt/kafka-manager/current/conf/consumer.properties
+kafka-manager.zkhosts="{{ range $i, $p := getvs "/links/zk_service/hosts/*/ip" }}
+  {{- if $i }},{{ end }}
+  {{- . }}:{{ getv "/links/zk_service/cluster/endpoints/client/port" "2181" }}
+{{- end }}/kafka/{{ getv "/cluster/cluster_id" }}"
+pinned-dispatcher.type="PinnedDispatcher"
+pinned-dispatcher.executor="thread-pool-executor"
+application.features=["KMClusterManagerFeature","KMTopicManagerFeature","KMPreferredReplicaElectionFeature","KMReassignPartitionsFeature"]
+
+akka {
+  loggers = ["akka.event.slf4j.Slf4jLogger"]
+  loglevel = "WARN"
+}
+
+{{- range gets "/env/kafka-manager.basic*" }}
+{{ replace (base .Key) "kafka-manager." "" -1 }}="{{ .Value }}"
+{{- end }}
+basicAuthentication.realm="Kafka-Manager"
+group.id={{ getv "/host/node_id" }}
+http.port={{ getv "/env/kafka-manager.port" }}
+APP_CONF_EOF
+
+{{- end }}

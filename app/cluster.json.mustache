@@ -1,173 +1,171 @@
 {
-    "name": {{cluster.name}},
-    "description": {{cluster.description}},
-    "vxnet": {{cluster.vxnet}},
-    "links": {
-        "zk_service": {{cluster.zk_service}}
+  "name": {{cluster.name}},
+  "description": {{cluster.description}},
+  "vxnet": {{cluster.vxnet}},
+  "links": {
+    "zk_service": {{cluster.zk_service}}
+  },
+  "multi_zone_policy": "round_robin",
+  "nodes": [{
+    "role":"kafka",
+    "container": {
+      "type": "lxc",
+      "zone": "sh1a",
+      "image": "img-wj6o5fvj"
     },
-    "multi_zone_policy": "round_robin",
-    "nodes": [
-       {
-        "role":"kafka",
-        "container": {
-            "type": "lxc",
-            "zone": "ap2a",
-            "image": "img-b1xnoanw"
-        },
-        "instance_class": {{cluster.kafka.instance_class}},
-        "count": {{cluster.kafka.count}},
-        "cpu": {{cluster.kafka.cpu}},
-        "memory": {{cluster.kafka.memory}},
-        "volume": {
-          "size": {{cluster.kafka.volume_size}},
-          "mount_point": "/data",
-          "filesystem": "xfs"
-        },
-        "services": {
-            "start": {
-                "cmd": "/opt/kafka/bin/kafka-start.sh"
-            },
-            "stop": {
-                "cmd": "/opt/kafka/bin/kafka-server-stop.sh"
-            },
-            "restart": {
-                "cmd": "/opt/kafka/bin/kafka-server-restart.sh"
-            }
-        },
-        "advanced_actions": ["change_vxnet", "scale_horizontal", "associate_eip"],
-         "vertical_scaling_policy": "sequential",
-         "health_check": {
-             "enable": true,
-             "interval_sec": 60,
-             "timeout_sec": 10,
-             "action_timeout_sec": 30,
-             "healthy_threshold": 2,
-             "unhealthy_threshold": 2,
-             "check_cmd": "/opt/kafka/bin/check.sh",
-             "action_cmd": "/opt/kafka/bin/action.sh"
-        },
-         "monitor": {
-             "enable": true,
-             "cmd": "/opt/kafka/bin/get-monitor.sh",
-             "items": {
-               "heap_usage": {
-                   "unit": "%"
-               },
-               "MessagesInPerSec_1MinuteRate": {
-                   "unit": "count/sec"
-               },
-               "BytesInPerSec_1MinuteRate": {
-                   "unit": "bps"
-               },
-               "BytesOutPerSec_1MinuteRate": {
-                   "unit": "bps"
-               },
-               "Replica_MaxLag": {
-                 "unit": "count"
-               },
-               "IsrExpandsPerSec_1MinuteRate": {
-                   "unit": "count/sec"
-               },
-               "KafkaController_ActiveControllerCount": {
-                   "unit": "count"
-               },
-               "KafkaController_OfflinePartitionsCount": {
-                   "unit": "count"
-               }
-             },
-             "groups": {
-                 "JVM Heap":  ["heap_usage"],
-                 "Message Throughput": ["MessagesInPerSec_1MinuteRate"],
-                 "Data Throughput": ["BytesInPerSec_1MinuteRate", "BytesOutPerSec_1MinuteRate"],
-                 "Replica MaxLag": ["Replica_MaxLag"],
-                 "Isr Expansion Rate": ["IsrExpandsPerSec_1MinuteRate"],
-                 "Management Statistics": ["KafkaController_ActiveControllerCount","KafkaController_OfflinePartitionsCount"]
-             },
-             "display": ["JVM Heap", "Message Throughput", "Data Throughput","Replica MaxLag","Isr Expansion Rate","Management Statistics"],
-             "alarm": ["heap_usage","Replica_MaxLag"]
-         }
-    },{
-     "role":"client",
-     "user_access": true,
-     "container": {
-         "type": "kvm",
-         "zone": "ap2a",
-         "image": "img-b1xnoanw"
-     },
-     "instance_class": {{cluster.client.instance_class}},
-     "count": {{cluster.client.count}},
-     "cpu": {{cluster.client.cpu}},
-     "memory": {{cluster.client.memory}},
-     "volume": {
-       "size": {{cluster.client.volume_size}},
-       "mount_point": "/data",
-       "filesystem": "xfs"
-     },
-     "services": {
-         "start": {
-             "cmd": "/opt/kafka-manager/bin/kafka-manager-start.sh"
-         },
-         "stop": {
-             "cmd": "/opt/kafka-manager/bin/kafka-manager-stop.sh"
-         }
-     },
-     "advanced_actions": ["change_vxnet", "scale_horizontal", "associate_eip"],
-     "health_check": {
-         "enable": true,
-         "interval_sec": 60,
-         "timeout_sec": 10,
-         "action_timeout_sec": 30,
-         "healthy_threshold": 2,
-         "unhealthy_threshold": 2,
-         "check_cmd": "/opt/kafka-manager/bin/check.sh",
-         "action_cmd": "/opt/kafka-manager/bin/action.sh"
-     }
- }],
-    "env": {
-        "log.retention.bytes": {{env.log_retention_bytes}},
-        "log.retention.hours": {{env.log_retention_hours}},
-        "log.segment.bytes":{{env.log_segment_bytes}},
-        "log.segment.delete.delay.ms":{{env.log_segment_delete_delay_ms}},
-        "log.roll.hours":{{env.log_roll_hours}},
-        "auto.create.topics.enable": {{env.auto_create_topics_enable}},
-        "default.replication.factor": {{env.default_replication_factor}},
-        "delete.topic.enable": {{env.delete_topic_enable}},
-        "log.cleaner.enable": {{env.log_cleaner_enable}},
-        "message.max.bytes": {{env.message_max_bytes}},
-        "num.io.threads": {{env.num_io_threads}},
-        "num.partitions": {{env.num_partitions}},
-        "num.replica.fetchers": {{env.num_replica_fetchers}},
-        "log.cleanup.policy": {{env.log_cleanup_policy}},
-        "compression.type": {{env.compression_type}},
-        "queued.max.requests": {{env.queued_max_requests}},
-        "socket.receive.buffer.bytes": {{env.socket_receive_buffer_bytes}},
-        "socket.send.buffer.bytes": {{env.socket_send_buffer_bytes}},
-        "unclean.leader.election.enable": {{env.unclean_leader_election_enable}},
-        "advertised.host.name": {{env.advertised_host_name}},
-        "advertised.port": {{env.advertised_port}},
-        "offsets.topic.replication.factor": {{env.offsets_topic_replication_factor}},
-        "kafka-manager.basicAuthentication.enabled": {{env.kafka-manager_basicAuthentication_enabled}},
-        "kafka-manager.basicAuthentication.username": {{env.kafka-manager_basicAuthentication_username}},
-        "kafka-manager.basicAuthentication.password": {{env.kafka-manager_basicAuthentication_password}},
-        "kafka-manager.port": {{env.kafka-manager_port}}
+    "instance_class": {{cluster.kafka.instance_class}},
+    "count": {{cluster.kafka.count}},
+    "cpu": {{cluster.kafka.cpu}},
+    "memory": {{cluster.kafka.memory}},
+    "volume": {
+      "size": {{cluster.kafka.volume_size}},
+      "mount_point": "/data",
+      "filesystem": "xfs"
     },
-    "endpoints": {
-        "client": {
-            "port": "env.advertised.port",
-            "protocol": "tcp"
+    "services": {
+      "start": {
+        "cmd": "appctl start"
+      },
+      "stop": {
+        "cmd": "appctl stop"
+      },
+      "restart": {
+        "cmd": "appctl restart"
+      }
+    },
+    "advanced_actions": ["change_vxnet", "scale_horizontal", "associate_eip"],
+    "vertical_scaling_policy": "sequential",
+    "health_check": {
+      "enable": true,
+      "interval_sec": 60,
+      "timeout_sec": 10,
+      "action_timeout_sec": 30,
+      "healthy_threshold": 2,
+      "unhealthy_threshold": 2,
+      "check_cmd": "appctl check",
+      "action_cmd": "appctl revive"
+    },
+    "monitor": {
+      "enable": true,
+      "cmd": "appctl measure",
+      "items": {
+        "heap_usage": {
+          "unit": "%"
         },
-        "kafka-manager": {
-            "port": "env.kafka-manager.port",
-            "protocol": "http"
+        "MessagesInPerSec_1MinuteRate": {
+          "unit": "count/sec"
         },
-        "jmx": {
-            "port": 9999,
-            "protocol": "tcp"
+        "BytesInPerSec_1MinuteRate": {
+          "unit": "bps"
         },
-        "monitor": {
-            "port": 8125,
-            "protocol": "udp"
+        "BytesOutPerSec_1MinuteRate": {
+          "unit": "bps"
+        },
+        "Replica_MaxLag": {
+        "unit": "count"
+        },
+        "IsrExpandsPerSec_1MinuteRate": {
+          "unit": "count/sec"
+        },
+        "KafkaController_ActiveControllerCount": {
+          "unit": "count"
+        },
+        "KafkaController_OfflinePartitionsCount": {
+          "unit": "count"
         }
-
+      },
+      "groups": {
+        "JVM Heap":  ["heap_usage"],
+        "Message Throughput": ["MessagesInPerSec_1MinuteRate"],
+        "Data Throughput": ["BytesInPerSec_1MinuteRate", "BytesOutPerSec_1MinuteRate"],
+        "Replica MaxLag": ["Replica_MaxLag"],
+        "Isr Expansion Rate": ["IsrExpandsPerSec_1MinuteRate"],
+        "Management Statistics": ["KafkaController_ActiveControllerCount","KafkaController_OfflinePartitionsCount"]
+      },
+      "display": ["JVM Heap", "Message Throughput", "Data Throughput","Replica MaxLag","Isr Expansion Rate","Management Statistics"],
+      "alarm": ["heap_usage","Replica_MaxLag"]
     }
+  }, {
+    "role":"client",
+    "user_access": true,
+    "container": {
+      "type": "kvm",
+      "zone": "sh1a",
+      "image": "img-wj6o5fvj"
+    },
+    "instance_class": {{cluster.client.instance_class}},
+    "count": {{cluster.client.count}},
+    "cpu": {{cluster.client.cpu}},
+    "memory": {{cluster.client.memory}},
+    "volume": {
+      "size": {{cluster.client.volume_size}},
+      "mount_point": "/data",
+      "filesystem": "xfs"
+    },
+    "services": {
+      "start": {
+        "cmd": "appctl start"
+      },
+      "stop": {
+        "cmd": "appctl stop"
+      }
+    },
+    "advanced_actions": ["change_vxnet", "scale_horizontal", "associate_eip"],
+    "health_check": {
+      "enable": true,
+      "interval_sec": 60,
+      "timeout_sec": 10,
+      "action_timeout_sec": 30,
+      "healthy_threshold": 2,
+      "unhealthy_threshold": 2,
+      "check_cmd": "appctl check",
+      "action_cmd": "appctl revive"
+    }
+  }],
+  "env": {
+    "log.retention.bytes": {{env.log_retention_bytes}},
+    "log.retention.hours": {{env.log_retention_hours}},
+    "log.segment.bytes":{{env.log_segment_bytes}},
+    "log.segment.delete.delay.ms":{{env.log_segment_delete_delay_ms}},
+    "log.roll.hours":{{env.log_roll_hours}},
+    "auto.create.topics.enable": {{env.auto_create_topics_enable}},
+    "default.replication.factor": {{env.default_replication_factor}},
+    "delete.topic.enable": {{env.delete_topic_enable}},
+    "log.cleaner.enable": {{env.log_cleaner_enable}},
+    "message.max.bytes": {{env.message_max_bytes}},
+    "num.io.threads": {{env.num_io_threads}},
+    "num.partitions": {{env.num_partitions}},
+    "num.replica.fetchers": {{env.num_replica_fetchers}},
+    "log.cleanup.policy": {{env.log_cleanup_policy}},
+    "compression.type": {{env.compression_type}},
+    "queued.max.requests": {{env.queued_max_requests}},
+    "socket.receive.buffer.bytes": {{env.socket_receive_buffer_bytes}},
+    "socket.send.buffer.bytes": {{env.socket_send_buffer_bytes}},
+    "unclean.leader.election.enable": {{env.unclean_leader_election_enable}},
+    "advertised.host.name": {{env.advertised_host_name}},
+    "advertised.port": {{env.advertised_port}},
+    "offsets.topic.replication.factor": {{env.offsets_topic_replication_factor}},
+    "kafka-manager.basicAuthentication.enabled": {{env.kafka-manager_basicAuthentication_enabled}},
+    "kafka-manager.basicAuthentication.username": {{env.kafka-manager_basicAuthentication_username}},
+    "kafka-manager.basicAuthentication.password": {{env.kafka-manager_basicAuthentication_password}},
+    "kafka-manager.port": {{env.kafka-manager_port}}
+  },
+  "endpoints": {
+    "client": {
+      "port": "env.advertised.port",
+      "protocol": "tcp"
+    },
+    "kafka-manager": {
+      "port": "env.kafka-manager.port",
+      "protocol": "http"
+    },
+    "jmx": {
+      "port": 9999,
+      "protocol": "tcp"
+    },
+    "monitor": {
+      "port": 8125,
+      "protocol": "udp"
+    }
+  }
 }

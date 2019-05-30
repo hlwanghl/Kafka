@@ -8,9 +8,15 @@ After=network.target remote-fs.target
 Type=simple
 User=kafka
 Group=kafka
-Environment=JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
-ExecStart=/opt/kafka/current/bin/kafka-server-start.sh /opt/kafka/current/config/server.properties
+LimitNOFILE=500000
+LimitFSIZE=infinity
+EnvironmentFile=/opt/app/conf/kafka/.env
+ExecStart=/opt/kafka/current/bin/kafka-server-start.sh /opt/app/conf/kafka/server.properties
 ExecStop=/opt/kafka/current/bin/kafka-server-stop.sh
+
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+NoNewPrivileges=true
 
 [Install]
 WantedBy=multi-user.target

@@ -1,20 +1,11 @@
-cat > /opt/kafka/config/consumer.properties << KAFKA_CONSUMER_PROPERTIES_EOF
-#this script was created by new cmd
-# dependency
-#old consumer 
-{{if exists "/links/zk_service/cluster/endpoints/client/port"}}{{$port := getv "/links/zk_service/cluster/endpoints/client/port"}} zookeeper.connect={{range $i, $host := ls (printf "/links/zk_service/hosts")}}{{$ip := printf "/links/zk_service/hosts/%s/ip" $host}}{{if $i}},{{end}}{{getv $ip}}:{{$port}}{{end}}{{else}}zookeeper.connect={{range $i, $host := ls (printf "/links/zk_service/hosts")}}{{$ip := printf "/links/zk_service/hosts/%s/ip" $host}}{{if $i}},{{end}}{{getv $ip}}:2181{{end}}/kafka/{{getv "/cluster/cluster_id"}}{{end}}
+{{- if eq $myRole "kafka" }}
 
-#new consumer
-bootstrap.servers={{range $i,$dir:= ls (printf "/hosts/kafka")}}{{$ip := printf "/hosts/kafka/%s/ip" $dir}}{{if $i}},{{end}}{{getv $ip}}:9092{{end}}
-
-request.required.acks=1 #default 0
-request.timeout.ms=10000
-producer.type=async #default sync
-serializer.class=kafka.serializer.DefaultEncoder
-
-zookeeper.connection.timeout.ms=60000
-client.id={{getv "/cluster/zone"}}{{getv "/host/sid"}}
-# consumer group id
+cat > /opt/kafka/current/config/consumer.properties << KAFKA_CONSUMER_PROPERTIES_EOF
+bootstrap.servers={{ range $i,$ip := getvs "/hosts/kafka/*/ip" }}
+{{- if $i }},{{ end }}
+{{- . }}:9092
+{{- end }}
 group.id={{getv "/cluster/cluster_id"}}
-
 KAFKA_CONSUMER_PROPERTIES_EOF
+
+{{- end }}
