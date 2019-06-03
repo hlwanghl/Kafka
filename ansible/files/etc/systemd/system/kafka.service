@@ -1,8 +1,8 @@
 [Unit]
 Description=Apache Kafka server (broker)
 Documentation=http://kafka.apache.org/documentation.html
-Requires=network.target remote-fs.target
-After=network.target remote-fs.target
+Requires=network.target
+After=network.target
 
 [Service]
 Type=simple
@@ -10,9 +10,13 @@ User=kafka
 Group=kafka
 LimitNOFILE=500000
 LimitFSIZE=infinity
+PIDFile=/var/run/kafka.pid
 EnvironmentFile=/opt/app/conf/kafka/.env
 ExecStart=/opt/kafka/current/bin/kafka-server-start.sh /opt/app/conf/kafka/server.properties
 ExecStop=/opt/kafka/current/bin/kafka-server-stop.sh
+TimeoutSec=120s
+Restart=on-failure
+SyslogIdentifier=kafka
 
 CapabilityBoundingSet=CAP_NET_BIND_SERVICE
 AmbientCapabilities=CAP_NET_BIND_SERVICE

@@ -2,8 +2,7 @@
 - hosts: server
   vars:
     kafkaManagerVersion: 2.0.0.2 #latest
-    kafkaMetricsVersion: 0.4.0
-    kafkaVersion: 2.2.0
+    kafkaVersion: 1.1.1
     scalaVersion: "2.11"
 
   tasks:
@@ -94,6 +93,13 @@
         group: kafka
         creates: /opt/kafka/{{ kafkaVersion }}/bin/kafka-server-start.sh
         extra_opts: [ '--strip-components=1' ]
+
+    - name: install statsd metrics
+      copy:
+        src: ../deps/kafka-statsd-metrics2-master-0.4.0.jar
+        dest: /opt/kafka/current/libs
+        owner: kafka
+        group: kafka
 
     - name: prepare kafka manager directory
       file:

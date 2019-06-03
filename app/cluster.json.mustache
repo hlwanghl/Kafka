@@ -6,12 +6,18 @@
     "zk_service": {{cluster.zk_service}}
   },
   "multi_zone_policy": "round_robin",
+  "upgrade_policy": [
+    "appv-3w7cnjir",
+    "appv-vx6yl2x5",
+    "appv-t2pkfxjs"
+  ],
+  "upgrading_policy": "sequential",
   "nodes": [{
     "role":"kafka",
     "container": {
       "type": "lxc",
       "zone": "sh1a",
-      "image": "img-wj6o5fvj"
+      "image": "img-x1m7oykv"
     },
     "instance_class": {{cluster.kafka.instance_class}},
     "count": {{cluster.kafka.count}},
@@ -23,11 +29,16 @@
       "filesystem": "xfs"
     },
     "services": {
+      "init": {
+        "cmd": "appctl init"
+      },
       "start": {
-        "cmd": "appctl start"
+        "cmd": "appctl start",
+        "order": 1
       },
       "stop": {
-        "cmd": "appctl stop"
+        "cmd": "appctl stop",
+        "order": 2
       },
       "restart": {
         "cmd": "appctl restart"
@@ -75,14 +86,13 @@
         }
       },
       "groups": {
-        "JVM Heap":  ["heap_usage"],
         "Message Throughput": ["MessagesInPerSec_1MinuteRate"],
         "Data Throughput": ["BytesInPerSec_1MinuteRate", "BytesOutPerSec_1MinuteRate"],
         "Replica MaxLag": ["Replica_MaxLag"],
         "Isr Expansion Rate": ["IsrExpandsPerSec_1MinuteRate"],
         "Management Statistics": ["KafkaController_ActiveControllerCount","KafkaController_OfflinePartitionsCount"]
       },
-      "display": ["JVM Heap", "Message Throughput", "Data Throughput","Replica MaxLag","Isr Expansion Rate","Management Statistics"],
+      "display": ["heap_usage", "Message Throughput", "Data Throughput","Replica MaxLag","Isr Expansion Rate","Management Statistics"],
       "alarm": ["heap_usage","Replica_MaxLag"]
     }
   }, {
@@ -91,7 +101,7 @@
     "container": {
       "type": "kvm",
       "zone": "sh1a",
-      "image": "img-wj6o5fvj"
+      "image": "img-x1m7oykv"
     },
     "instance_class": {{cluster.client.instance_class}},
     "count": {{cluster.client.count}},
@@ -103,11 +113,19 @@
       "filesystem": "xfs"
     },
     "services": {
+      "init": {
+        "cmd": "appctl init"
+      },
       "start": {
-        "cmd": "appctl start"
+        "cmd": "appctl start",
+        "order": 2
       },
       "stop": {
-        "cmd": "appctl stop"
+        "cmd": "appctl stop",
+        "order": 1
+      },
+      "restart": {
+        "cmd": "appctl restart"
       }
     },
     "advanced_actions": ["change_vxnet", "scale_horizontal", "associate_eip"],
