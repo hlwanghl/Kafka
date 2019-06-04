@@ -9,7 +9,8 @@
   "upgrade_policy": [
     "appv-3w7cnjir",
     "appv-vx6yl2x5",
-    "appv-t2pkfxjs"
+    "appv-t2pkfxjs",
+    "appv-zvwuau98"
   ],
   "upgrading_policy": "sequential",
   "nodes": [{
@@ -42,6 +43,11 @@
       },
       "restart": {
         "cmd": "appctl restart"
+      },
+      "upgrade": {
+      "cmd": "appctl init",
+      "order": 3,
+      "timeout": 60
       }
     },
     "advanced_actions": ["change_vxnet", "scale_horizontal", "associate_eip"],
@@ -126,6 +132,11 @@
       },
       "restart": {
         "cmd": "appctl restart"
+      },
+      "upgrade": {
+      "cmd": "appctl init",
+      "order": 3,
+      "timeout": 60
       }
     },
     "advanced_actions": ["change_vxnet", "scale_horizontal", "associate_eip"],
