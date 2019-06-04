@@ -10,7 +10,7 @@ log() {
 }
 
 svc() {
-  systemctl $@ $MY_ROLE
+  systemctl $@ $MY_ROLE $EXTRA_SVCS
 }
 
 retry() {
