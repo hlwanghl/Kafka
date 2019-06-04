@@ -10,7 +10,7 @@ log() {
 }
 
 svc() {
-  systemctl $@ $MY_ROLE
+  systemctl $@ $MY_ROLE $EXTRA_SVCS
 }
 
 retry() {
@@ -37,6 +37,7 @@ retry() {
 init() {
   mkdir -p /data/$MY_ROLE/logs
   chown -R kafka.kafka /data/$MY_ROLE
+  if [ "$MY_ROLE" = "kafka" ]; then ln -s /opt/app/conf/caddy/index.html /data/kafka; fi
   svc unmask -q
   svc enable -q
 }

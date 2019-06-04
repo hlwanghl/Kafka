@@ -4,6 +4,7 @@
     kafkaManagerVersion: 2.0.0.2 #latest
     kafkaVersion: 1.1.1
     scalaVersion: "2.11"
+    caddyVersion: "1.0.0"
 
   tasks:
     - name: common setup
@@ -65,6 +66,7 @@
       with_items:
         - kafka/{{ kafkaVersion }}
         - kafka-manager/{{ kafkaManagerVersion }}
+        - caddy/{{ caddyVersion }}
 
     - name: create symbolic links
       file:
@@ -78,6 +80,8 @@
           version: "{{ kafkaVersion }}"
         - name: kafka-manager
           version: "{{ kafkaManagerVersion }}"
+        - name: caddy
+          version: "{{ caddyVersion }}"
 
     - name: download Kafka
       get_url:
@@ -137,6 +141,20 @@
         rm -rf /opt/kafka-manager/kafka-manager-{{ kafkaManagerVersion }}
       args:
         creates: /opt/kafka-manager/{{ kafkaManagerVersion }}/bin/kafka-manager
+
+    - name: download caddy server
+      get_url:
+        url: https://github.com/mholt/caddy/releases/download/v{{ caddyVersion }}/caddy_v{{ caddyVersion }}_linux_amd64.tar.gz
+        dest: files/tmp/caddy-{{ caddyVersion }}.tgz
+      delegate_to: localhost
+
+    - name: install caddy
+      unarchive:
+        src: files/tmp/caddy-{{ caddyVersion }}.tgz
+        dest: /opt/caddy/{{ caddyVersion }}
+        owner: kafka
+        group: kafka
+        creates: /opt/caddy/{{ caddyVersion }}/caddy
 
     - name: update permissions of service directories
       file:
