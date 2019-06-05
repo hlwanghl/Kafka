@@ -18,7 +18,7 @@
     "container": {
       "type": "lxc",
       "zone": "sh1a",
-      "image": "img-9bjntfwp"
+      "image": "img-x1m7oykv"
     },
     "instance_class": {{cluster.kafka.instance_class}},
     "count": {{cluster.kafka.count}},
@@ -46,7 +46,6 @@
       },
       "upgrade": {
       "cmd": "appctl init",
-      "order": 3,
       "timeout": 60
       }
     },
@@ -107,7 +106,7 @@
     "container": {
       "type": "kvm",
       "zone": "sh1a",
-      "image": "img-9bjntfwp"
+      "image": "img-x1m7oykv"
     },
     "instance_class": {{cluster.client.instance_class}},
     "count": {{cluster.client.count}},
@@ -135,7 +134,6 @@
       },
       "upgrade": {
       "cmd": "appctl init",
-      "order": 3,
       "timeout": 60
       }
     },
