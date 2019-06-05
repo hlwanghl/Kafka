@@ -3,7 +3,7 @@
 cat > /opt/app/conf/kafka/server.properties << KAFKA_SERVER_PROPERTIES_EOF
 # fixed params
 broker.id={{ getv "/host/sid" }}
-broker.rack={{ getv "/cluster/zone" }}  # /host/zone 
+broker.rack={{ getv "/host/zone" (getv "/cluster/zone")}}  # /host/zone 
 host.name={{ getv "/host/ip" }}
 log.dirs=/data/kafka/kafka-logs
 log.flush.interval.messages=10000

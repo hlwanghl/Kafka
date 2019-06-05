@@ -53,6 +53,8 @@ check() {
 }
 
 start() {
+  ulimit -n 500000
+  ulimit -u 500000
   svc start
   retry 60 1 0 check
   if [ "$MY_ROLE" = "kafka-manager" ]; then addCluster; fi
