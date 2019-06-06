@@ -4,6 +4,8 @@ set -eo pipefail
 
 . /opt/app/bin/.env
 
+EC_HTTP_ERROR=20
+
 command=$1
 log() {
   logger -t appctl --id=$$ [cmd=$command] $@
@@ -47,6 +49,15 @@ checkPorts() {
   local port; for port in $ports; do nc -z -w3 $opts $MY_IP $port; done
 }
 
+checkHttp() {
+  local host=${1:-$MY_IP} port=${2:-80}
+  local code="$(curl -s -o /dev/null -w "%{http_code}" $host:$port)"
+  [[ "$code" =~ ^(200|302|401|403|404)$ ]] || {
+    log "HTTP status check failed to $host:$port: code=$code."
+    return $EC_HTTP_ERROR
+  }
+}
+
 check() {
   svc is-active -q
   checkPorts
@@ -55,7 +66,10 @@ check() {
 start() {
   svc start
   retry 60 1 0 check
-  if [ "$MY_ROLE" = "kafka-manager" ]; then addCluster; fi
+  if [ "$MY_ROLE" = "kafka-manager" ]; then
+    retry 60 1 0 checkHttp $MY_IP $MY_PORT
+    addCluster || log "Failed to add cluster automatically."
+  fi
 }
 
 addCluster() {
