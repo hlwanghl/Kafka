@@ -9,8 +9,7 @@
   "upgrade_policy": [
     "appv-3w7cnjir",
     "appv-vx6yl2x5",
-    "appv-t2pkfxjs",
-    "appv-zvwuau98"
+    "appv-t2pkfxjs"
   ],
   "upgrading_policy": "sequential",
   "nodes": [{
@@ -18,7 +17,7 @@
     "container": {
       "type": "lxc",
       "zone": "sh1a",
-      "image": "img-x1m7oykv"
+      "image": "img-kuosp8t7"
     },
     "instance_class": {{cluster.kafka.instance_class}},
     "count": {{cluster.kafka.count}},
@@ -106,7 +105,7 @@
     "container": {
       "type": "kvm",
       "zone": "sh1a",
-      "image": "img-x1m7oykv"
+      "image": "img-kuosp8t7"
     },
     "instance_class": {{cluster.client.instance_class}},
     "count": {{cluster.client.count}},
