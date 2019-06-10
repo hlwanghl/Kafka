@@ -247,6 +247,14 @@
             "default": 1000000,
             "required": "no"
         }, {
+            "key": "num.network.threads",
+            "label": "num.network.threads",
+            "description": "The number of threads that the server uses for receiving requests from the network and sending responses to the network",
+            "type": "integer",
+            "default": 3,
+            "min": 1,
+            "required": "no"
+        }, {
             "key": "num_io_threads",
             "label": "num.io.threads",
             "description": "The number of io threads that the server uses for carrying out network requests",
@@ -262,6 +270,14 @@
             "type": "integer",
             "default": 3,
             "max": 100,
+            "min": 1,
+            "required": "no"
+        }, {
+            "key": "num.recovery.threads.per.data.dir",
+            "label": "num.recovery.threads.per.data.dir",
+            "description": "The number of threads per data directory to be used for log recovery at startup and flushing at shutdown",
+            "type": "integer",
+            "default": 1,
             "min": 1,
             "required": "no"
         }, {

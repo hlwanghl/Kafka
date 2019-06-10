@@ -81,6 +81,7 @@ addCluster() {
     --data-urlencode "name=$CLUSTER_ID" \
     --data-urlencode "zkHosts=$ZK_HOSTS" \
     --data-urlencode "kafkaVersion=$KAFKA_VERSION" \
+    --data-urlencode "jmxEnabled=true" \
     --data-urlencode "jmxUser=" \
     --data-urlencode "jmxPass=" \
     --data-urlencode "tuning.brokerViewUpdatePeriodSeconds=30" \

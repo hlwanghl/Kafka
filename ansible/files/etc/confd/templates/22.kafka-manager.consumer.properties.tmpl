@@ -2,7 +2,7 @@
 
 cat > /opt/app/conf/kafka-manager/consumer.properties << CONSUMER_PROP_EOF
 security.protocol=PLAINTEXT
-group.id={{ getv "/cluster/cluster_id" }}
+group.id={{ getv "/cluster/cluster_id" }}{{ getv "/host/sid" }}
 CONSUMER_PROP_EOF
 
 {{- end }}
