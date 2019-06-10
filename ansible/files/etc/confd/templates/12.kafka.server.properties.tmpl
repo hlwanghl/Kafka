@@ -23,7 +23,10 @@ zookeeper.session.timeout.ms=6000
 
 # params input by user
 {{- range gets "/env/*" | filter ".+" }}
-{{ base .Key }}={{ .Value }}
+{{- $key := base .Key }}
+{{- if not (eq (index (split $key ".") 0) "kafka-manager") }}
+{{ $key }}={{ .Value }}
+{{- end }}
 {{- end }}
 
 # monitor
