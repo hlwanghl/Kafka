@@ -1,4 +1,6 @@
-cat > /opt/app/conf/caddy/index.html << LS_HTML_EOF
+{{- if eq $myRole "kafka-manager" }}
+
+cat > /opt/app/conf/caddy/index.html << KM_HTML_EOF
 <!DOCTYPE html>
 <html>
   <head>
@@ -70,16 +72,15 @@ cat > /opt/app/conf/caddy/index.html << LS_HTML_EOF
   <body>
     <header>文件查看器/</header>
     <main>
-      {{- $kafkaNodes := getvs "/hosts/kafka/*/ip" }}
+      {{- $kafkaManagerNodes := getvs "/hosts/client/*/ip" }}
       <div class="meta">
-        <span>共 <b>{{ len $kafkaNodes }}</b> 个 Kafka 节点</span>
+        <span>共 <b>{{ len $kafkaManagerNodes }}</b> 个 Kafka Manager 节点</span>
       </div>
       <ul class="listing">
         <li class="header">节点/目录</li>
-        {{- range $kafkaNodes }}
+        {{- range $kafkaManagerNodes }}
         {{- if eq . $myIp }}
         <li><span>⊟</span>{{ . }}</li>
-        <li><span class="sub-1">⊞</span><a href="./kafka-logs/">kafka-logs</a></li>
         <li><span class="sub-1">⊞</span><a href="./logs/">logs</a></li>
         {{- else }}
         <li><span>⊞</span><a href="//{{ . }}/">{{ . }}</a></li>
@@ -92,4 +93,6 @@ cat > /opt/app/conf/caddy/index.html << LS_HTML_EOF
     </footer>
   </body>
 </html>
-LS_HTML_EOF
+KM_HTML_EOF
+
+{{- end }}

@@ -4,4 +4,5 @@ cat > /opt/app/conf/kafka-manager/consumer.properties << CONSUMER_PROP_EOF
 security.protocol=PLAINTEXT
 group.id={{ getv "/cluster/cluster_id" }}
 CONSUMER_PROP_EOF
+
 {{- end }}

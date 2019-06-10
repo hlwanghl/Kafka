@@ -1,9 +1,8 @@
 cat > /opt/app/conf/caddy/Caddyfile << CADDYFILE_EOF
 {{ $myIp }}:80 {
-  root /data/kafka
+  root /data/{{ $myRole }}
   gzip
-  browse /kafka-logs
-  browse /logs
+  browse
   tls off
 }
 CADDYFILE_EOF

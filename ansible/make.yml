@@ -1,10 +1,10 @@
 ---
 - hosts: server
   vars:
-    kafkaManagerVersion: 2.0.0.2 #latest
-    kafkaVersion: 1.1.1
-    scalaVersion: "2.11"
-    caddyVersion: "1.0.0"
+    kafka_manager_version: 2.0.0.2 #latest
+    kafka_version: 1.1.1
+    scala_version: "2.11"
+    caddy_version: "1.0.0"
 
   tasks:
     - name: common setup
@@ -16,7 +16,18 @@
         dest: /{{ item }}
         directory_mode: yes
       with_items:
-        - etc/systemd/system/
+        - lib/systemd/system/
+
+    - name: disable auto start
+      systemd:
+        name: "{{ svc_name }}"
+        state: stopped
+        masked: yes
+      loop:
+      - kafka
+      - kafka-manager
+      loop_control:
+        loop_var: svc_name
 
     - name: add the service group
       group:
@@ -64,9 +75,9 @@
         group: kafka
         state: directory
       with_items:
-        - kafka/{{ kafkaVersion }}
-        - kafka-manager/{{ kafkaManagerVersion }}
-        - caddy/{{ caddyVersion }}
+        - kafka/{{ kafka_version }}
+        - kafka-manager/{{ kafka_manager_version }}
+        - caddy/{{ caddy_version }}
 
     - name: create symbolic links
       file:
@@ -77,25 +88,25 @@
         state: link
       with_items:
         - name: kafka
-          version: "{{ kafkaVersion }}"
+          version: "{{ kafka_version }}"
         - name: kafka-manager
-          version: "{{ kafkaManagerVersion }}"
+          version: "{{ kafka_manager_version }}"
         - name: caddy
-          version: "{{ caddyVersion }}"
+          version: "{{ caddy_version }}"
 
     - name: download Kafka
       get_url:
-        url: https://archive.apache.org/dist/kafka/{{ kafkaVersion }}/kafka_{{ scalaVersion }}-{{ kafkaVersion }}.tgz
-        dest: files/tmp/kafka-{{ kafkaVersion }}.tgz
+        url: https://archive.apache.org/dist/kafka/{{ kafka_version }}/kafka_{{ scala_version }}-{{ kafka_version }}.tgz
+        dest: files/tmp/kafka-{{ kafka_version }}.tgz
       delegate_to: localhost
 
     - name: install kafka
       unarchive:
-        src: files/tmp/kafka-{{ kafkaVersion }}.tgz
-        dest: /opt/kafka/{{ kafkaVersion }}
+        src: files/tmp/kafka-{{ kafka_version }}.tgz
+        dest: /opt/kafka/{{ kafka_version }}
         owner: kafka
         group: kafka
-        creates: /opt/kafka/{{ kafkaVersion }}/bin/kafka-server-start.sh
+        creates: /opt/kafka/{{ kafka_version }}/bin/kafka-server-start.sh
         extra_opts: [ '--strip-components=1' ]
 
     - name: install statsd metrics
@@ -107,54 +118,54 @@
 
     - name: prepare kafka manager directory
       file:
-        path: files/tmp/kafka-manager-{{ kafkaManagerVersion }}
+        path: files/tmp/kafka-manager-{{ kafka_manager_version }}
         state: directory
       delegate_to: localhost
 
     - name: download kafka manager src
       unarchive:
-        src: https://github.com/yahoo/kafka-manager/archive/{{ kafkaManagerVersion }}.zip
+        src: https://github.com/yahoo/kafka-manager/archive/{{ kafka_manager_version }}.zip
         dest: files/tmp
-        creates: files/tmp/kafka-manager-{{ kafkaManagerVersion }}/sbt
+        creates: files/tmp/kafka-manager-{{ kafka_manager_version }}/sbt
         remote_src: yes
       delegate_to: localhost
 
     - name: build kafka manager
-      shell: ./sbt clean dist
+      shell: ./sbt dist
       args:
-        chdir: files/tmp/kafka-manager-{{ kafkaManagerVersion }}
-        creates: files/tmp/kafka-manager-{{ kafkaManagerVersion }}/target/universal/kafka-manager-{{ kafkaManagerVersion }}.zip
+        chdir: files/tmp/kafka-manager-{{ kafka_manager_version }}
+        creates: files/tmp/kafka-manager-{{ kafka_manager_version }}/target/universal/kafka-manager-{{ kafka_manager_version }}.zip
         executable: /bin/bash
       delegate_to: localhost
 
     - name: install kafka manager binaries
       unarchive:
-        src: files/tmp/kafka-manager-{{ kafkaManagerVersion }}/target/universal/kafka-manager-{{ kafkaManagerVersion }}.zip
+        src: files/tmp/kafka-manager-{{ kafka_manager_version }}/target/universal/kafka-manager-{{ kafka_manager_version }}.zip
         dest: /opt/kafka-manager
         owner: kafka
         group: kafka
-        creates: /opt/kafka-manager/{{ kafkaManagerVersion }}/bin/kafka-manager
+        creates: /opt/kafka-manager/{{ kafka_manager_version }}/bin/kafka-manager
 
     - name: align kafka manager layout
       shell: |
-        cp -r /opt/kafka-manager/kafka-manager-{{ kafkaManagerVersion }}/* /opt/kafka-manager/{{ kafkaManagerVersion }}/
-        rm -rf /opt/kafka-manager/kafka-manager-{{ kafkaManagerVersion }}
+        cp -r /opt/kafka-manager/kafka-manager-{{ kafka_manager_version }}/* /opt/kafka-manager/{{ kafka_manager_version }}/
+        rm -rf /opt/kafka-manager/kafka-manager-{{ kafka_manager_version }}
       args:
-        creates: /opt/kafka-manager/{{ kafkaManagerVersion }}/bin/kafka-manager
+        creates: /opt/kafka-manager/{{ kafka_manager_version }}/bin/kafka-manager
 
     - name: download caddy server
       get_url:
-        url: https://github.com/mholt/caddy/releases/download/v{{ caddyVersion }}/caddy_v{{ caddyVersion }}_linux_amd64.tar.gz
-        dest: files/tmp/caddy-{{ caddyVersion }}.tgz
+        url: https://github.com/mholt/caddy/releases/download/v{{ caddy_version }}/caddy_v{{ caddy_version }}_linux_amd64.tar.gz
+        dest: files/tmp/caddy-{{ caddy_version }}.tgz
       delegate_to: localhost
 
     - name: install caddy
       unarchive:
-        src: files/tmp/caddy-{{ caddyVersion }}.tgz
-        dest: /opt/caddy/{{ caddyVersion }}
+        src: files/tmp/caddy-{{ caddy_version }}.tgz
+        dest: /opt/caddy/{{ caddy_version }}
         owner: kafka
         group: kafka
-        creates: /opt/caddy/{{ caddyVersion }}/caddy
+        creates: /opt/caddy/{{ caddy_version }}/caddy
 
     - name: update permissions of service directories
       file:
@@ -166,6 +177,11 @@
       with_items:
         - kafka
         - kafka-manager
+
+    - name: set up version env
+      copy:
+        dest: /opt/app/bin/version.env
+        content: KAFKA_VERSION={{ kafka_version }}
 
     - name: clean up
       shell: |

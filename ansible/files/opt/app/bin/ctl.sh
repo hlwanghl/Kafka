@@ -39,9 +39,8 @@ retry() {
 init() {
   mkdir -p /data/$MY_ROLE/logs
   chown -R kafka.kafka /data/$MY_ROLE
-  if [ "$MY_ROLE" = "kafka" ]; then ln -s /opt/app/conf/caddy/index.html /data/kafka; fi
+  ln -s /opt/app/conf/caddy/index.html /data/$MY_ROLE/index.html
   svc unmask -q
-  svc enable -q
 }
 
 checkPorts() {
@@ -68,11 +67,13 @@ start() {
   retry 60 1 0 check
   if [ "$MY_ROLE" = "kafka-manager" ]; then
     retry 60 1 0 checkHttp $MY_IP $MY_PORT
-    addCluster || log "Failed to add cluster automatically."
+    local httpCode="$(addCluster)"
+    if [ "$httpCode" != "200" ]; then log "Failed to add cluster automatically with '$httpCode'."; fi
   fi
 }
 
 addCluster() {
+  . /opt/app/bin/version.env
   curl -s -m5 -w "%{http_code}" -o /dev/null \
     -u "$WEB_USER:$WEB_PASSWORD" \
     --data-urlencode "name=$CLUSTER_ID" \
@@ -113,7 +114,7 @@ restart() {
 }
 
 update() {
-  if svc is-enabled -q; then restart; fi
+  if [ "$(systemctl is-enabled $MY_ROLE)" = "disabled" ]; then restart; fi
 }
 
 measure() {
