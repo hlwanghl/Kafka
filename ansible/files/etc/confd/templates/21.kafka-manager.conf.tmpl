@@ -10,9 +10,9 @@ play.http.secret.key=\${?APPLICATION_SECRET}
 # ~~~~~
 play.i18n.langs=["en"]
 
+play.application.loader=loader.KafkaManagerLoader
 play.http.requestHandler = "play.http.DefaultHttpRequestHandler"
 play.http.context = "/"
-play.application.loader=loader.KafkaManagerLoader
 
 # dependency
 kafka-manager.consumer.properties.file=/opt/app/conf/kafka-manager/consumer.properties
@@ -27,14 +27,13 @@ application.features=["KMClusterManagerFeature","KMTopicManagerFeature","KMPrefe
 
 akka {
   loggers = ["akka.event.slf4j.Slf4jLogger"]
-  loglevel = "INFO"
+  loglevel = "WARNING"
 }
 
 {{- range gets "/env/kafka-manager.basic*" }}
 {{ replace (base .Key) "kafka-manager." "" -1 }}="{{ .Value }}"
 {{- end }}
 basicAuthentication.realm="Kafka-Manager"
-group.id={{ getv "/host/node_id" }}
 http.port={{ getv "/env/kafka-manager.port" }}
 APP_CONF_EOF
 

@@ -39,7 +39,7 @@ retry() {
 init() {
   if [ "$MY_ROLE" = "kafka-manager" ]; then echo 'ubuntu:kafka' | chpasswd; fi
 
-  mkdir -p /data/$MY_ROLE/logs
+  mkdir -p /data/$MY_ROLE/{dump,logs}
   chown -R kafka.kafka /data/$MY_ROLE
   ln -s /opt/app/conf/caddy/index.html /data/$MY_ROLE/index.html
   svc unmask -q

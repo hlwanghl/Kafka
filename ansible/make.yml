@@ -26,6 +26,7 @@
       loop:
       - kafka
       - kafka-manager
+      - caddy
       loop_control:
         loop_var: svc_name
 
@@ -182,10 +183,3 @@
       copy:
         dest: /opt/app/bin/version.env
         content: KAFKA_VERSION={{ kafka_version }}
-
-    - name: clean up
-      shell: |
-        >/var/log/syslog
-        >~/.bash_history && history -c
-      args:
-        executable: /bin/bash
