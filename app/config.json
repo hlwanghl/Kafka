@@ -2,7 +2,7 @@
     "type": "array",
     "properties": [{
         "key": "cluster",
-        "description": "Kafka release 2.2.0 cluster properties",
+        "description": "Kafka release 1.1.1 cluster properties",
         "type": "array",
         "properties": [{
             "key": "name",
@@ -327,7 +327,7 @@
         }, {
             "key": "advertised_host_name",
             "label": "advertised.host.name",
-            "description": "This is the hostname that will be given out to other workers to connect to.",
+            "description": "This is the hostname that will be given out to other workers to connect to",
             "type": "string",
             "default": "",
             "required": "no"
