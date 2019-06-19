@@ -179,6 +179,11 @@
         - kafka
         - kafka-manager
 
+    - name: add Kafka commands to system-wide $PATH
+      copy:
+        dest: /etc/profile.d/kafka-path.sh
+        content: 'PATH=$PATH:/opt/kafka/current/bin'
+
     - name: set up version env
       copy:
         dest: /opt/app/bin/version.env
