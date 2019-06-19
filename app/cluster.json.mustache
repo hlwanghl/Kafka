@@ -11,13 +11,13 @@
     "appv-vx6yl2x5",
     "appv-t2pkfxjs"
   ],
-  "upgrading_policy": "sequential",
+  "upgrading_policy": "parallel",
   "nodes": [{
     "role":"kafka",
     "container": {
       "type": "lxc",
       "zone": "sh1a",
-      "image": "img-72p6ikzg"
+      "image": "img-28yinhws"
     },
     "instance_class": {{cluster.kafka.instance_class}},
     "count": {{cluster.kafka.count}},
@@ -106,7 +106,7 @@
     "container": {
       "type": "kvm",
       "zone": "sh1a",
-      "image": "img-72p6ikzg"
+      "image": "img-28yinhws"
     },
     "instance_class": {{cluster.client.instance_class}},
     "count": {{cluster.client.count}},
