@@ -26,6 +26,7 @@ zookeeper.session.timeout.ms=6000
 {{ $key }}={{ .Value }}
 {{- end }}
 {{- end }}
+listeners=PLAINTEXT://{{ $myIp }}:{{ getv "/env/advertised.port" "9092" }}
 
 # monitor
 external.kafka.statsd.dimension.enabled.meanRate=false

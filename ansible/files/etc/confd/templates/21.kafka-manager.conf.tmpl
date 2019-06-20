@@ -34,7 +34,7 @@ akka {
 {{ replace (base .Key) "kafka-manager." "" -1 }}="{{ .Value }}"
 {{- end }}
 basicAuthentication.realm="Kafka-Manager"
-http.port={{ getv "/env/kafka-manager.port" }}
+http.port={{ getv "/env/kafka-manager.port" "9000" }}
 APP_CONF_EOF
 
 {{- end }}
