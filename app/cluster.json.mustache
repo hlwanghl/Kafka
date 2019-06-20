@@ -17,7 +17,7 @@
     "container": {
       "type": "lxc",
       "zone": "sh1a",
-      "image": "img-28yinhws"
+      "image": "img-z2o1nxjs"
     },
     "instance_class": {{cluster.kafka.instance_class}},
     "count": {{cluster.kafka.count}},
@@ -29,9 +29,6 @@
       "filesystem": "xfs"
     },
     "services": {
-      "init": {
-        "cmd": "appctl init"
-      },
       "start": {
         "cmd": "appctl start",
         "order": 1
@@ -42,11 +39,6 @@
       },
       "restart": {
         "cmd": "appctl restart"
-      },
-      "upgrade": {
-      "cmd": "appctl init",
-      "order": 1,
-      "timeout": 60
       }
     },
     "advanced_actions": ["change_vxnet", "scale_horizontal", "associate_eip"],
@@ -106,7 +98,7 @@
     "container": {
       "type": "kvm",
       "zone": "sh1a",
-      "image": "img-28yinhws"
+      "image": "img-z2o1nxjs"
     },
     "instance_class": {{cluster.client.instance_class}},
     "count": {{cluster.client.count}},
@@ -118,9 +110,6 @@
       "filesystem": "xfs"
     },
     "services": {
-      "init": {
-        "cmd": "appctl init"
-      },
       "start": {
         "cmd": "appctl start",
         "order": 2
@@ -131,11 +120,6 @@
       },
       "restart": {
         "cmd": "appctl restart"
-      },
-      "upgrade": {
-      "cmd": "appctl init",
-      "order": 2,
-      "timeout": 60
       }
     },
     "advanced_actions": ["change_vxnet", "scale_horizontal", "associate_eip"],

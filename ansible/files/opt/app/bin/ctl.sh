@@ -37,12 +37,17 @@ retry() {
 }
 
 init() {
-  if [ "$MY_ROLE" = "kafka-manager" ]; then echo 'ubuntu:kafka' | chpasswd; fi
+  if [ "$MY_ROLE" = "kafka-manager" ]; then echo 'root:kafka' | chpasswd; echo 'ubuntu:kafka' | chpasswd; fi
 
   mkdir -p /data/$MY_ROLE/{dump,logs}
   chown -R kafka.kafka /data/$MY_ROLE
-  ln -s /opt/app/conf/caddy/index.html /data/$MY_ROLE/index.html
+  local htmlFile=/data/$MY_ROLE/index.html
+  [ -e "$htmlFile" ] || ln -s /opt/app/conf/caddy/index.html $htmlFile
   svc unmask -q
+}
+
+isInitialized() {
+  [ "$(systemctl is-enabled ${MY_ROLE})" = "disabled" ]
 }
 
 checkPorts() {
@@ -65,6 +70,7 @@ check() {
 }
 
 start() {
+  isInitialized || init
   svc start
   retry 60 1 0 check
   if [ "$MY_ROLE" = "kafka-manager" ]; then
@@ -118,6 +124,10 @@ restart() {
 
 update() {
   if [ "$(systemctl is-enabled $MY_ROLE)" = "disabled" ]; then restart; fi
+}
+
+revive() {
+  check || restart
 }
 
 measure() {
