@@ -18,7 +18,7 @@ play.http.context = "/"
 kafka-manager.consumer.properties.file=/opt/app/conf/kafka-manager/consumer.properties
 kafka-manager.zkhosts="{{ range $i, $p := getvs "/links/zk_service/hosts/*/ip" }}
   {{- if $i }},{{ end }}
-  {{- . }}:{{ getv "/links/zk_service/cluster/endpoints/client/port" "2181" }}
+  {{- . }}:{{ $zkPort }}
 {{- end }}/kafka/{{ getv "/cluster/cluster_id" }}"
 kafka-manager.base-zk-path="/kafka-manager"
 pinned-dispatcher.type="PinnedDispatcher"

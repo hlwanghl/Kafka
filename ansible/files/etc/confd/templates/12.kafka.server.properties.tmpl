@@ -4,15 +4,15 @@ cat > /opt/app/conf/kafka/server.properties << KAFKA_SERVER_PROPERTIES_EOF
 # fixed params
 broker.id={{ getv "/host/sid" }}
 broker.rack={{ getv "/host/zone" (getv "/cluster/zone") }}
-listeners=PLAINTEXT://{{ $myIp }}:9092
+host.name={{ $myIp }}
 log.dirs=/data/kafka/kafka-logs
 log.flush.interval.messages=10000
 log.flush.interval.ms=1000
 log.retention.check.interval.ms=300000
+port=9092
 replica.fetch.max.bytes=1000000
 {{- $clusterId := getv "/cluster/cluster_id" }}
 {{- $zkHosts := getvs "/links/zk_service/hosts/*/ip" }}
-{{- $zkPort := getv "/links/zk_service/cluster/endpoints/client/port" "2181" }}
 zookeeper.connect={{ range $i, $ip := $zkHosts }}{{ if $i }},{{ end }}{{ $ip }}:{{ $zkPort }}{{ end }}/kafka/{{ $clusterId }}
 zookeeper.connection.timeout.ms=6000
 zookeeper.session.timeout.ms=6000
