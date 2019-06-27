@@ -36,6 +36,15 @@ retry() {
   log "'$cmd' still returned errors after $tried attempts. Stopping ..." && return $retCode
 }
 
+startzabbix() {
+
+  if [ "$zabbix_enable" = "true" ]; then 
+    service zabbix-agent start 
+  else 
+    log "zabbix-agent start failed..."  
+  fi
+}
+
 init() {
   if [ "$MY_ROLE" = "kafka-manager" ]; then echo 'root:kafka' | chpasswd; echo 'ubuntu:kafka' | chpasswd; fi
 
@@ -65,7 +74,11 @@ checkHttp() {
 }
 
 check() {
-  svc is-active -q
+  #if [[ "$(svc is-active)" =~ ^active ]]; then
+   # return 1
+  #else checkPorts
+  #fi
+  svc is-active 
   checkPorts
 }
 
@@ -115,6 +128,7 @@ addCluster() {
 }
 
 stop() {
+  service zabbix-agent stop
   svc stop
 }
 

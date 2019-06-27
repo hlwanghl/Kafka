@@ -17,7 +17,7 @@
     "container": {
       "type": "lxc",
       "zone": "sh1a",
-      "image": "img-0v88fpot"
+      "image": "img-6y3xyclw"
     },
     "instance_class": {{cluster.kafka.instance_class}},
     "count": {{cluster.kafka.count}},
@@ -70,7 +70,7 @@
           "unit": "bps"
         },
         "Replica_MaxLag": {
-          "unit": "count"
+        "unit": "count"
         },
         "IsrExpandsPerSec_1MinuteRate": {
           "unit": "count/sec"
@@ -98,7 +98,7 @@
     "container": {
       "type": "kvm",
       "zone": "sh1a",
-      "image": "img-0v88fpot"
+      "image": "img-6y3xyclw"
     },
     "instance_class": {{cluster.client.instance_class}},
     "count": {{cluster.client.count}},
@@ -135,6 +135,13 @@
     }
   }],
   "env": {
+    "replica.lag.time.max.ms": {{env.replica_lag_time_max_ms}},
+    "group.max.session.timeout.ms": {{env.group_max_session_timeout_ms}},
+    "group.min.session.timeout.ms": {{env.group_min_session_timeout_ms}},
+    "zabbix-server.ip": {{env.zabbix_server_ip}},
+    "zabbix-agent.port": {{env.zabbix_agent_port}},
+    "zabbix.enable": {{env.zabbix_enable}},
+    "UnsafeUserParameters": {{env.UnsafeUserParameters}},
     "advertised.host.name": {{env.advertised_host_name}},
     "advertised.port": {{env.advertised_port}},
     "auto.create.topics.enable": {{env.auto_create_topics_enable}},

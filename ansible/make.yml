@@ -2,9 +2,10 @@
 - hosts: server
   vars:
     kafka_manager_version: 2.0.0.2 #latest
-    kafka_version: 1.1.1
+    kafka_version: 2.3.0   #实际安装版本
     scala_version: "2.11"
     caddy_version: "1.0.0"
+    zabbix: "4.0"  #stabel
 
   tasks:
     - name: common setup
@@ -79,6 +80,7 @@
         - kafka/{{ kafka_version }}
         - kafka-manager/{{ kafka_manager_version }}
         - caddy/{{ caddy_version }}
+        - zabbix
 
     - name: create symbolic links
       file:
@@ -154,6 +156,24 @@
       args:
         creates: /opt/kafka-manager/{{ kafka_manager_version }}/bin/kafka-manager
 
+    - name: download zabbix deb
+      unarchive:
+        src: https://repo.zabbix.com/zabbix/4.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_4.0-2+xenial_all.deb
+        dest: /opt/zabbix
+        creates: /opt/zabbix/
+        remote_src: yes
+      delegate_to: localhost
+
+    - name: install zabbix agent
+      shell: |
+        dpkg -i zabbix-release_4.0-2+xenial_all.deb
+        apt update 
+        apt -y install zabbix-agent
+      args:
+        chdir: /opt/zabbix/
+        executable: /bin/bash
+        creates: /etc/zabbix/
+
     - name: download caddy server
       get_url:
         url: https://github.com/mholt/caddy/releases/download/v{{ caddy_version }}/caddy_v{{ caddy_version }}_linux_amd64.tar.gz
@@ -187,4 +207,4 @@
     - name: set up version env
       copy:
         dest: /opt/app/bin/version.env
-        content: KAFKA_VERSION={{ kafka_version }}
+        content: KAFKA_VERSION=2.2.0      #因为kafka manager支持的最大的kafka版本为2.2.0，实测2.3.0也可使用
