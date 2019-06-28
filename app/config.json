@@ -370,8 +370,8 @@
             "default": 9000,
             "required": "no"
         },{
-            "key": "zabbix_enable",
-            "label": "zabbix.enable",
+            "key": "zabbix_agent_enable",
+            "label": "zabbix.agent.enable",
             "description": "This is the config that enable zabbix agent",
             "type": "boolean",
             "default": false,
@@ -379,7 +379,7 @@
             "required": "yes"
         },{
             "key": "zabbix_server_ip",
-            "label": "zabbix-server.ip",
+            "label": "zabbix.server.ip",
             "description": "This is the zabbix-server which host will connect",
             "type": "string",
             "changeable":true,
@@ -387,7 +387,7 @@
             "required": "no"
         },{
             "key": "zabbix_agent_port",
-            "label": "zabbix-agent.port",
+            "label": "zabbix.agent.port",
             "description": "This is the zabbix.port which host will connect",
             "default": 10050,
             "type": "integer",

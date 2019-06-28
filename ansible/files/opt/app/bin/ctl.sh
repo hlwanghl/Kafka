@@ -38,7 +38,7 @@ retry() {
 
 startzabbix() {
 
-  if [ "$zabbix_enable" = "true" ]; then 
+  if [ "$ZABBIX_AGENT_ENABLE" = "true" ]; then 
     service zabbix-agent start 
   else 
     log "zabbix-agent start failed..."  
