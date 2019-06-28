@@ -2,11 +2,11 @@ cat > /etc/zabbix/zabbix_agentd.conf << ZABBIX_EOF
 PidFile=/var/run/zabbix/zabbix_agentd.pid
 LogFile=/data/logs/zabbix_agentd.log
 LogFileSize=20
-Server={{getv "/env/zabbix-server.ip"}}
-ListenPort={{getv "/env/zabbix-agent.port"}}
+Server={{getv "/env/zabbix.server.ip"}}
+ListenPort={{getv "/env/zabbix.agent.port"}}
 Hostname=system.hostname
 Include=/etc/zabbix/zabbix_agentd.d/*.conf
-UnsafeUserParameters={{ getv “/env/UnsafeUserParameters” }}
+UnsafeUserParameters=1
 RefreshActiveChecks=120  
 DebugLevel=3
 
