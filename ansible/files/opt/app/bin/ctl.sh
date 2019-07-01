@@ -16,12 +16,10 @@ svc() {
 }
 
 startZabbix() {
-  if [ "$zabbix_enable" = "true" ]; then 
-    systemctl stop  zabbix-agent
-    systemctl start zabbix-agent
+  if [ "${ZABBIX_AGENT_ENABLE}" = "true" ]; then 
+    systemctl restart zabbix-agent   
   else
-    systemctl stop  zabbix-agent
-    log "zabbix-agent start failed..."  
+    systemctl stop    zabbix-agent
   fi
 }
 retry() {
@@ -43,15 +41,6 @@ retry() {
   done
 
   log "'$cmd' still returned errors after $tried attempts. Stopping ..." && return $retCode
-}
-
-startzabbix() {
-
-  if [ "$ZABBIX_AGENT_ENABLE" = "true" ]; then 
-    service zabbix-agent start 
-  else 
-    log "zabbix-agent start failed..."  
-  fi
 }
 
 init() {
@@ -86,8 +75,22 @@ checkHttp() {
   }
 }
 
+preCheck() {
+  if [ "${ZABBIX_AGENT_ENABLE}" = "true" ]; then
+    isZbbixActive=$(systemctl is-active zabbix-agent)  #active/inactive
+  else
+    isZbbixActive=disabled
+  fi
+  isAppActive=$(svc is-active)
+  isCaddyActive=$(systemctl is-active caddy)
+}
+
 check() {
-  if [ "${ZABBIX_AGENT_ENABLE}" = "true" ] && [ 'systemctl is-active zabbix-agent -q' ]; then
+  if [ "${ZABBIX_AGENT_ENABLE}" = "true" ]; then
+    systemctl is-active zabbix-agent -q
+    svc is-active -q
+    checkPorts
+  else
     svc is-active -q
     checkPorts
   fi
@@ -96,6 +99,7 @@ check() {
 start() {
   isInitialized || init
   svc start
+  startZabbix
   retry 60 1 0 check
   if [ "$MY_ROLE" = "kafka-manager" ]; then
     retry 60 1 0 checkHttp $MY_IP $MY_PORT
