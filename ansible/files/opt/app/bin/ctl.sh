@@ -152,7 +152,11 @@ restart() {
 }
 
 update() {
-  if [ "$(systemctl is-enabled $MY_ROLE)" = "disabled" ]; then restart; fi
+  if [ "$(systemctl is-enabled $MY_ROLE)" = "disabled" ]; then 
+    restart; 
+  else
+    startZabbix; #add all services except the main service
+  fi
 }
 
 revive() {
