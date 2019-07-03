@@ -77,5 +77,6 @@
     "Allow all characters to be passed in arguments to user-defined parameters": "是否允许使用全部符号，开启意味着更高的风险和更多的功能",
     "The time interval at which leaders will remove followers from isr": "leader会将follower从isr中删除的时间间隔",
     "The maximum allowed session timeout for registered consumers": "已注册消费者最长会话超时时长",
-    "The minimum allowed session timeout for registered consumers": "已注册消费者最短会话超时时长"
+    "The minimum allowed session timeout for registered consumers": "已注册消费者最短会话超时时长",
+    "notice_when_upgrade": "请注意该版本consumer已改用新版配置，若使用，请先确认您的代码已经做好适配！！！注意：升级成功无法回退"
   }
