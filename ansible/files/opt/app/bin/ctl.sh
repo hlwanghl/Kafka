@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+ #!/usr/bin/env bash
 
 set -eo pipefail
 
@@ -45,12 +45,11 @@ retry() {
 
 init() {
   if [ "$MY_ROLE" = "kafka-manager" ]; then echo 'root:kafka' | chpasswd; echo 'ubuntu:kafka' | chpasswd; fi
-  mkdir -p /data/zabbix
+  mkdir -p /data/zabbix  /data/$MY_ROLE/{dump,logs}
   chown -R zabbix.zabbix /data/zabbix
-  mkdir -p /data/zabbix/zabbix_agentd.log
+  chown -R kafka.kafka /data/$MY_ROLE  
+  touch -p /data/zabbix/zabbix_agentd.log
   chown -R zabbix.zabbix /data/zabbix/zabbix_agentd.log
-  mkdir -p /data/$MY_ROLE/{dump,logs}
-  chown -R kafka.kafka /data/$MY_ROLE
   local htmlFile=/data/$MY_ROLE/index.html
   [ -e "$htmlFile" ] || ln -s /opt/app/conf/caddy/index.html $htmlFile
   svc unmask -q
@@ -73,16 +72,6 @@ checkHttp() {
     log "HTTP status check failed to $host:$port: code=$code."
     return $EC_HTTP_ERROR
   }
-}
-
-preCheck() {
-  if [ "${ZABBIX_AGENT_ENABLE}" = "true" ]; then
-    isZbbixActive=$(systemctl is-active zabbix-agent)  #active/inactive
-  else
-    isZbbixActive=disabled
-  fi
-  isAppActive=$(svc is-active)
-  isCaddyActive=$(systemctl is-active caddy)
 }
 
 check() {
