@@ -28,12 +28,15 @@
 
 - name: Copy confd toml files
   copy:
-    src: "./files/etc/confd/conf.d/make.sh.toml"
-    dest: "/etc/confd/conf.d/make.sh.toml"
+    src: "./files/etc/confd/conf.d/{{ item }}.sh.toml"
+    dest: "/etc/confd/conf.d/{{ item }}.sh.toml"
     owner: root
     group: root
     directory_mode: yes
     mode: 755
+  with_items:
+        - make_zabbix
+        - make
 
 - name: Compile tmpl files
   shell: |
@@ -42,10 +45,14 @@
     destDir="files/tmp/confd/templates"
     rm -rf $destDir
     mkdir -p $destDir
-    tmplFile=$destDir/make.sh.tmpl
     for tmpl in $srcFiles; do
-      cat $tmpl >> $tmplFile
-      echo >> $tmplFile
+      if [[ "$tmpl" =~ ^3 ]]; then
+        cat $tmpl >> $destDir/make_zabbix.sh.tmpl
+        echo >> $destDir/make_zabbix.sh.tmpl
+      else
+        cat $tmpl >> $destDir/make.sh.tmpl
+        echo >> $destDir/make.sh.tmpl
+      fi 
     done
   args:
     executable: /bin/bash
@@ -53,8 +60,11 @@
 
 - name: Copy confd tmpl files
   copy:
-    src: files/tmp/confd/templates/make.sh.tmpl
-    dest: /etc/confd/templates/make.sh.tmpl
+    src: files/tmp/confd/templates/{{ item }}.sh.tmpl
+    dest: /etc/confd/templates/{{ item }}.sh.tmpl
     owner: root
     group: root
     mode: "u=rw,g=r,o=r"
+  with_items:
+      - make
+      - make_zabbix

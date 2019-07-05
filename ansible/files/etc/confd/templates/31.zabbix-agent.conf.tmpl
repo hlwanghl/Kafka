@@ -1,3 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
 cat > /etc/zabbix/zabbix_agentd.conf << ZABBIX_EOF
 PidFile=/var/run/zabbix/zabbix_agentd.pid
 LogFile=/data/zabbix/zabbix_agentd.log

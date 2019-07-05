@@ -53,11 +53,14 @@ init() {
   local htmlFile=/data/$MY_ROLE/index.html
   [ -e "$htmlFile" ] || ln -s /opt/app/conf/caddy/index.html $htmlFile
   svc unmask -q
-  systemctl unmask zabbix-agent
+  systemctl unmask zabbix-agent -q
 }
 
 isInitialized() {
   [ "$(systemctl is-enabled ${MY_ROLE})" = "disabled" ]
+  if [ "${ZABBIX_AGENT_ENABLE}" = "true" ]; then 
+    [ "$(systemctl is-enabled zabbix-agent)" = "disabled" ]  
+  fi
 }
 
 checkPorts() {
