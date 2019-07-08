@@ -47,6 +47,18 @@
         comment: "Service User"
         state: present
 
+    - name: copy sh
+      copy: #copy sh
+        src: files/opt/app/bin/{{ item }}.sh
+        dest: /opt/app/bin
+        owner: root
+        group: kafka
+        mode: preserve
+        directory_mode: u=rwx,g=rx,o=
+      with_items:
+        - ctl
+        - role
+
     - name: copy binaries
       copy: #拷贝service文件
         src: files/opt/

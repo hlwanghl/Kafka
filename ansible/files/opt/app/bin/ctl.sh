@@ -1,181 +1,161 @@
- #!/usr/bin/env bash
+#!/usr/bin/env bash
 
-set -eo pipefail
+for envFile in /opt/app/bin/*.env; do . $envFile; done
 
-. /opt/app/bin/.env
-
-EC_HTTP_ERROR=20
+# Error codes
+EC_CHECK_INACTIVE=200
+EC_CHECK_PORT_ERR=201
+EC_CHECK_PROTO_ERR=202
 
 command=$1
+args="${@:2}"
+
 log() {
-  logger -t appctl --id=$$ [cmd=$command] $@
+  logger -t appctl --id=$$ [cmd=$command] "$@"
 }
 
-svc() {
-  systemctl $@ $MY_ROLE $EXTRA_SVCS
-}
-
-startZabbix() {
-  if [ "${ZABBIX_AGENT_ENABLE}" = "true" ]; then 
-    systemctl restart zabbix-agent   
-  else
-    systemctl stop    zabbix-agent
-  fi
-}
 retry() {
   local tried=0
   local maxAttempts=$1
   local interval=$2
   local stopCode=$3
   local cmd="${@:4}"
-  local retCode=$EC_RETRY_FAILED
+  local retCode=0
   while [ $tried -lt $maxAttempts ]; do
-    $cmd && return 0 || {
-      retCode=$?
-      if [ "$retCode" = "$stopCode" ]; then
-        log "'$cmd' returned with stop code $stopCode. Stopping ..." && return $retCode
-      fi
-    }
-    sleep $interval
-    tried=$((tried+1))
+  $cmd && return 0 || {
+    retCode=$?
+    if [ "$retCode" = "$stopCode" ]; then
+    log "'$cmd' returned with stop code $stopCode. Stopping ..." && return $retCode
+    fi
+  }
+  sleep $interval
+  tried=$((tried+1))
   done
 
   log "'$cmd' still returned errors after $tried attempts. Stopping ..." && return $retCode
 }
 
-init() {
-  if [ "$MY_ROLE" = "kafka-manager" ]; then echo 'root:kafka' | chpasswd; echo 'ubuntu:kafka' | chpasswd; fi
-  mkdir -p /data/zabbix  /data/$MY_ROLE/{dump,logs}
-  chown -R zabbix.zabbix /data/zabbix
-  chown -R kafka.kafka /data/$MY_ROLE  
-  touch -p /data/zabbix/zabbix_agentd.log
-  chown -R zabbix.zabbix /data/zabbix/zabbix_agentd.log
-  local htmlFile=/data/$MY_ROLE/index.html
-  [ -e "$htmlFile" ] || ln -s /opt/app/conf/caddy/index.html $htmlFile
-  svc unmask -q
-  systemctl unmask zabbix-agent -q
+execute() {
+  local cmd=$1
+  [ "$(type -t $cmd)" = "function" ] || cmd=_$cmd
+  $cmd ${@:2}
 }
+
+getServices() {
+  if [ "$1" = "-a" ]; then
+  echo $SERVICES
+  else
+  echo $SERVICES | xargs -n1 | awk -F/ '$2=="true"'   
+  fi
+}
+
+isSvcEnabled() {
+  [ "$(echo $(getServices -a) | xargs -n1 | awk -F/ '$1=="'$1'" {print $2}')" = "true" ]
+}
+
+
+checkActive() {
+  systemctl is-active -q $1
+}
+
+checkEndpoint() {
+  local host=$MY_IP proto=${1%:*} port=${1#*:}
+  case $port in
+    tcp)  nc -z -w5 $host $port ;;
+    udp)  nc -z -u -q5 -w5 $host $port ;;
+    http) local code="$(curl -s -o /dev/null -w "%{http_code}" $host:$port)"; [[ "$code" =~ ^(200|302|401|403|404)$ ]]  ;;
+    *)  return $EC_CHECK_PROTO_ERR
+  esac
+}
+
 
 isInitialized() {
-  [ "$(systemctl is-enabled ${MY_ROLE})" = "disabled" ]
-  if [ "${ZABBIX_AGENT_ENABLE}" = "true" ]; then 
-    [ "$(systemctl is-enabled zabbix-agent)" = "disabled" ]  
-  fi
+  local svcs="$(getServices -a)"
+  [ "$(systemctl is-enabled ${svcs%%/*})" = "disabled" ]
+}    
+
+initSvc() {
+  systemctl unmask -q ${svc%%/*}
 }
 
-checkPorts() {
-  local ports="$MY_PORT $EXTRA_PORTS"
-  local port; for port in $ports; do nc -z -w3 $opts $MY_IP $port; done
-}
-
-checkHttp() {
-  local host=${1:-$MY_IP} port=${2:-80}
-  local code="$(curl -s -o /dev/null -w "%{http_code}" $host:$port)"
-  [[ "$code" =~ ^(200|302|401|403|404)$ ]] || {
-    log "HTTP status check failed to $host:$port: code=$code."
-    return $EC_HTTP_ERROR
+checkSvc() {
+  checkActive ${svc%%/*} || {
+  log "Service '$svc' is inactive."
+  return $EC_CHECK_INACTIVE
   }
-}
-
-check() {
-  if [ "${ZABBIX_AGENT_ENABLE}" = "true" ]; then
-    systemctl is-active zabbix-agent -q
-    svc is-active -q
-    checkPorts
-  else
-    svc is-active -q
-    checkPorts
-  fi
-}
-
-start() {
-  isInitialized || init
-  svc start
-  startZabbix
-  retry 60 1 0 check
-  if [ "$MY_ROLE" = "kafka-manager" ]; then
-    retry 60 1 0 checkHttp $MY_IP $MY_PORT
-    local httpCode="$(addCluster)"
-    if [ "$httpCode" != "200" ]; then log "Failed to add cluster automatically with '$httpCode'."; fi
-  fi
-}
-
-addCluster() {
-  . /opt/app/bin/version.env
-  curl -s -m5 -w "%{http_code}" -o /dev/null \
-    -u "$WEB_USER:$WEB_PASSWORD" \
-    --data-urlencode "name=$CLUSTER_ID" \
-    --data-urlencode "zkHosts=$ZK_HOSTS" \
-    --data-urlencode "kafkaVersion=$KAFKA_VERSION" \
-    --data-urlencode "jmxEnabled=true" \
-    --data-urlencode "jmxUser=" \
-    --data-urlencode "jmxPass=" \
-    --data-urlencode "tuning.brokerViewUpdatePeriodSeconds=30" \
-    --data-urlencode "tuning.clusterManagerThreadPoolSize=2" \
-    --data-urlencode "tuning.clusterManagerThreadPoolQueueSize=100" \
-    --data-urlencode "tuning.kafkaCommandThreadPoolSize=2" \
-    --data-urlencode "tuning.kafkaCommandThreadPoolQueueSize=100" \
-    --data-urlencode "tuning.logkafkaCommandThreadPoolSize=2" \
-    --data-urlencode "tuning.logkafkaCommandThreadPoolQueueSize=100" \
-    --data-urlencode "tuning.logkafkaUpdatePeriodSeconds=30" \
-    --data-urlencode "tuning.partitionOffsetCacheTimeoutSecs=5" \
-    --data-urlencode "tuning.brokerViewThreadPoolSize=2" \
-    --data-urlencode "tuning.brokerViewThreadPoolQueueSize=1000" \
-    --data-urlencode "tuning.offsetCacheThreadPoolSize=2" \
-    --data-urlencode "tuning.offsetCacheThreadPoolQueueSize=1000" \
-    --data-urlencode "tuning.kafkaAdminClientThreadPoolSize=2" \
-    --data-urlencode "tuning.kafkaAdminClientThreadPoolQueueSize=1000" \
-    --data-urlencode "tuning.kafkaManagedOffsetMetadataCheckMillis=30000" \
-    --data-urlencode "tuning.kafkaManagedOffsetGroupCacheSize=1000000" \
-    --data-urlencode "tuning.kafkaManagedOffsetGroupExpireDays=7" \
-    --data-urlencode "securityProtocol=PLAINTEXT" \
-    --data-urlencode "saslMechanism=DEFAULT" \
-    --data-urlencode "jaasConfig=" \
-    "http://$MY_IP:$MY_PORT/clusters"
-}
-
-stop() {
-  systemctl stop zabbix-agent 
-  svc stop
-}
-
-restart() {
-  stop && start
-}
-
-update() {
-  if [ "$(systemctl is-enabled $MY_ROLE)" = "disabled" ]; then 
-    restart; 
-  else
-    startZabbix; #add all services except the main service
-  fi
-}
-
-revive() {
-  check || restart
-}
-
-measure() {
-  local metrics; metrics=$(echo mntr | nc -u -q3 -w3 127.0.0.1 8125)
-  [ -n "$metrics" ] || return 1
-
-  cat << METRICS_EOF
-  {
-    "heap_usage": $(parseMetrics "$metrics" ".jvm.memory.heap.usage" 100),
-    "MessagesInPerSec_1MinuteRate": $(parseMetrics "$metrics" ".kafka.server.BrokerTopicMetrics.MessagesInPerSec.1MinuteRate"),
-    "BytesInPerSec_1MinuteRate": $(parseMetrics "$metrics" ".kafka.server.BrokerTopicMetrics.BytesInPerSec.1MinuteRate"),
-    "BytesOutPerSec_1MinuteRate": $(parseMetrics "$metrics" ".kafka.server.BrokerTopicMetrics.BytesOutPerSec.1MinuteRate"),
-    "Replica_MaxLag": $(parseMetrics "$metrics" "kafka.server.ReplicaFetcherManager.MaxLag.Replica"),
-    "KafkaController_ActiveControllerCount": $(parseMetrics "$metrics" ".kafka.controller.KafkaController.ActiveControllerCount"),
-    "KafkaController_OfflinePartitionsCount": $(parseMetrics "$metrics" ".kafka.controller.KafkaController.OfflinePartitionsCount")
+  local endpoints=$(echo $svc | awk -F/ '{print $3}')
+  local endpoint; for endpoint in ${endpoints//,/ }; do
+  checkEndpoint $endpoint || {
+    log "Endpoint '$endpoint' is unreachable."
+    return $EC_CHECK_PORT_ERR
   }
-METRICS_EOF
+  done
 }
 
-parseMetrics() {
-  local metrics="$1" key="$2" factor
-  [ -z "$3" ] || factor="*$3"
-  echo "$metrics" | xargs -n1 | awk -F: 'BEGIN{value=""} $1=="'$key'"{value=$2} END{print (value=="" ? 0 : value'$factor')}'
+startSvc() {
+  systemctl start ${svc%%/*}
 }
 
-$1 ${@:2}
+stopSvc() {
+  systemctl stop ${svc%%/*}
+}
+
+restartSvc() {
+  stopSvc $svc && startSvc $svc
+}
+
+### app management
+
+_init() {
+  mkdir -p /data/appctl/logs
+  chown -R syslog.adm /data/appctl/logs
+  rm -rf /data/lost+found
+  local svc; for svc in $(getServices -a); do initSvc $svc; done
+}
+
+_revive() {
+  local svc; for svc in $(getServices); do
+  if [ "$1" == "--check-only" ]; then
+    checkSvc $svc
+  else
+    checkSvc $svc || restartSvc $svc
+  fi
+  done
+}
+
+_check() {
+  execute revive --check-only
+}
+
+_start() {
+  isInitialized || {
+  execute init
+  systemctl restart rsyslog # output to log files under /data
+  }
+
+  local svc; for svc in $(getServices); do startSvc $svc; done
+}
+
+_stop() {
+  local svc; for svc in $(getServices -a | xargs -n1 | tac); do stopSvc $svc; done
+}
+
+_restart() {
+  local svc; for svc in $(getServices); do restartSvc $svc; done
+}
+
+_update() {
+  if ! isInitialized; then return 0; fi # only update after initialized
+
+  local svc; for svc in ${@:-${MY_ROLE%%-*}}; do
+  stopSvc $svc
+  if isSvcEnabled $svc; then startSvc $svc; fi
+  done
+}
+
+. /opt/app/bin/role.sh
+set -eo pipefail
+
+execute $command $args
+
+
