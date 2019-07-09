@@ -18,7 +18,7 @@
     "container": {
       "type": "lxc",
       "zone": "sh1a",
-      "image": "img-fsl9wsp0"
+      "image": "img-h2nely3d"
     },
     "instance_class": {{cluster.kafka.instance_class}},
     "count": {{cluster.kafka.count}},
@@ -31,15 +31,15 @@
     },
     "services": {
       "start": {
-        "cmd": "appctl start",
+        "cmd": "appctl execute start",
         "order": 1
       },
       "stop": {
-        "cmd": "appctl stop",
+        "cmd": "appctl execute stop",
         "order": 2
       },
       "restart": {
-        "cmd": "appctl restart"
+        "cmd": "appctl execute restart"
       }
     },
     "advanced_actions": ["change_vxnet", "scale_horizontal", "associate_eip"],
@@ -51,8 +51,8 @@
       "action_timeout_sec": 30,
       "healthy_threshold": 2,
       "unhealthy_threshold": 2,
-      "check_cmd": "appctl check",
-      "action_cmd": "appctl revive"
+      "check_cmd": "appctl execute check",
+      "action_cmd": "appctl execute revive"
     },
     "monitor": {
       "enable": true,
@@ -99,7 +99,7 @@
     "container": {
       "type": "kvm",
       "zone": "sh1a",
-      "image": "img-fsl9wsp0"
+      "image": "img-h2nely3d"
     },
     "instance_class": {{cluster.client.instance_class}},
     "count": {{cluster.client.count}},
@@ -112,15 +112,15 @@
     },
     "services": {
       "start": {
-        "cmd": "appctl start",
+        "cmd": "appctl execute start",
         "order": 2
       },
       "stop": {
-        "cmd": "appctl stop",
+        "cmd": "appctl execute stop",
         "order": 1
       },
       "restart": {
-        "cmd": "appctl restart"
+        "cmd": "appctl execute restart"
       }
     },
     "advanced_actions": ["change_vxnet", "scale_horizontal", "associate_eip"],
@@ -131,8 +131,8 @@
       "action_timeout_sec": 30,
       "healthy_threshold": 2,
       "unhealthy_threshold": 2,
-      "check_cmd": "appctl check",
-      "action_cmd": "appctl revive"
+      "check_cmd": "appctl execute check",
+      "action_cmd": "appctl execute revive"
     }
   }],
   "env": {

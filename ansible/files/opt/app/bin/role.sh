@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+for envFile in /opt/app/bin/*.env; do . $envFile; done
+
+log() {
+  logger -t appctl --id=$$ [cmd=$command] "$@"
+}
 
 startZabbix() {
   if [ "${ZABBIX_AGENT_ENABLE}" = "true" ]; then 
@@ -13,7 +18,7 @@ init() {
   mkdir -p /data/zabbix  /data/$MY_ROLE/{dump,logs}
   chown -R zabbix.zabbix /data/zabbix
   chown -R kafka.kafka /data/$MY_ROLE  
-  touch -p /data/zabbix/zabbix_agentd.log
+  touch    /data/zabbix/zabbix_agentd.log
   chown -R zabbix.zabbix /data/zabbix/zabbix_agentd.log
   local htmlFile=/data/$MY_ROLE/index.html
   [ -e "$htmlFile" ] || ln -s /opt/app/conf/caddy/index.html $htmlFile
@@ -25,9 +30,10 @@ start() {
   local svc; for svc in $(getServices -a); do initSvc $svc; done
   startZabbix
   for svc in $(getServices); do execute startSvc; done
-  retry 60 1 0 check
+  retry 60 1 0 execute check
   if [ "$MY_ROLE" = "kafka-manager" ]; then
-    local httpCode="$(addCluster)"
+    retry 60 1 0 execute checkEndpoint "tcp:${MY_PORT:-80}";
+    local httpCode="$(addCluster)";
     if [ "$httpCode" != "200" ]; then log "Failed to add cluster automatically with '$httpCode'."; fi
   fi
 }
