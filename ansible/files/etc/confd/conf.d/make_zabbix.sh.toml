@@ -1,8 +1,0 @@
-[template]
-src = "make_zabbix.sh.tmpl"
-dest = "/opt/app/bin/make_zabbix.sh"
-mode = "0700"
-keys = [
-  "/",
-]
-reload_cmd = "/opt/app/bin/make_zabbix.sh; /opt/app/bin/ctl.sh startZabbix"

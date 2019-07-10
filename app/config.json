@@ -2,7 +2,7 @@
     "type": "array",
     "properties": [{
         "key": "cluster",
-        "description": "Kafka release 2.3.0 cluster properties",
+        "description": "Kafka release cluster properties",
         "type": "array",
         "properties": [{
             "key": "name",
