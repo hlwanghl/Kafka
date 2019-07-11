@@ -18,7 +18,7 @@
 - name: install tools
   apt:
     update_cache: yes
-    name: ['openjdk-8-jdk', 'unzip']
+    name: ['openjdk-8-jdk', 'unzip','arping']
     state: present
 
 - name: copy app files
