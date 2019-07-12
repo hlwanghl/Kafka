@@ -18,7 +18,7 @@
     "container": {
       "type": "lxc",
       "zone": "sh1a",
-      "image": "img-bblgd1dq"
+      "image": "img-mneexszx"
     },
     "instance_class": {{cluster.kafka.instance_class}},
     "count": {{cluster.kafka.count}},
@@ -31,15 +31,15 @@
     },
     "services": {
       "start": {
-        "cmd": "appctl execute start",
+        "cmd": "appctl  start",
         "order": 1
       },
       "stop": {
-        "cmd": "appctl execute  stop",
+        "cmd": "appctl  stop",
         "order": 2
       },
       "restart": {
-        "cmd": "appctl execute  restart"
+        "cmd": "appctl  restart"
       }
     },
     "advanced_actions": ["change_vxnet", "scale_horizontal", "associate_eip"],
@@ -51,8 +51,8 @@
       "action_timeout_sec": 30,
       "healthy_threshold": 2,
       "unhealthy_threshold": 2,
-      "check_cmd": "appctl execute  check",
-      "action_cmd": "appctl execute  revive"
+      "check_cmd": "appctl check",
+      "action_cmd": "appctl revive"
     },
     "monitor": {
       "enable": true,
@@ -99,7 +99,7 @@
     "container": {
       "type": "kvm",
       "zone": "sh1a",
-      "image": "img-bblgd1dq"
+      "image": "img-mneexszx"
     },
     "instance_class": {{cluster.client.instance_class}},
     "count": {{cluster.client.count}},
