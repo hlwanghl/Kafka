@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-log() {
-  logger -t appctl --id=$$ [cmd=$command] "$@"
-}
-
 init() {
   _init
   if [ "$MY_ROLE" = "kafka-manager" ]; then echo 'root:kafka' | chpasswd; echo 'ubuntu:kafka' | chpasswd; fi
@@ -17,9 +13,7 @@ init() {
 
 
 start() {
-  init
   _start
-  retry 60 1 0 execute check
   if [ "$MY_ROLE" = "kafka-manager" ]; then
     retry 60 1 0 execute checkEndpoint "tcp:${MY_PORT:-80}";
     local httpCode="$(addCluster)";
@@ -84,5 +78,3 @@ parseMetrics() {
   [ -z "$3" ] || factor="*$3"
   echo "$metrics" | xargs -n1 | awk -F: 'BEGIN{value=""} $1=="'$key'"{value=$2} END{print (value=="" ? 0 : value'$factor')}'
 }
-
-$1 ${@:2}
