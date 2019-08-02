@@ -15,9 +15,8 @@ init() {
 start() {
   _start
   if [ "$MY_ROLE" = "kafka-manager" ]; then
-    retry 60 1 0 execute checkEndpoint "tcp:${MY_PORT:-80}";
-    local httpCode="$(addCluster)";
-    if [ "$httpCode" != "200" ]; then log "Failed to add cluster automatically with '$httpCode'."; fi
+    local httpCode
+    httpCode="$(retry 10 2 0 addCluster)" && [ "$httpCode" == "200" ] || log "Failed to add cluster automatically with '$httpCode'."
   fi
 }
 
