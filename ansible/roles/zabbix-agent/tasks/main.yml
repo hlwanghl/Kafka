@@ -33,7 +33,7 @@
 
 - name: install zabbix agent
   shell: |
-    dpkg -i zabbix-release_4.0-2+xenial_all.deb
+    dpkg -i zabbix-release_3.4-1+xenial_all.deb
     apt update 
     apt -y install zabbix-agent
   args:

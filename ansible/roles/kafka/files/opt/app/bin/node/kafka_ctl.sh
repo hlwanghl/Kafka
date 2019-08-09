@@ -21,7 +21,7 @@ start() {
 }
 
 addCluster() {
-  . /opt/app/bin/version.env
+  . /opt/app/bin/envs/version.env
   curl -s -m5 -w "%{http_code}" -o /dev/null \
     -u "$WEB_USER:$WEB_PASSWORD" \
     --data-urlencode "name=$CLUSTER_ID" \
